@@ -1,0 +1,14 @@
+
+// config
+taq_path = '/mnt/data/TAQ/'
+first_data_path = taq_path + 'csv/TAQ20070801.csv'
+
+// create schema
+taq_schema = extractTextSchema(first_data_path)
+schema = table(lower(taq_schema.name), taq_schema.type)
+
+// load data
+sample_tbl = ploadText(first_data_path, schema)
+// time:
+
+freq_tbl = select count(*) from sample_tbl group by symbol
