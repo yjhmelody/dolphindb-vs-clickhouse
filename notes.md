@@ -10,7 +10,7 @@ ClickHouse有几核心的配置文件：
 
 ## Traps
 
-- metrika.xml 在 /etc/clickhouse-server/下
+- metrika.xml 在 /etc/下
 - 如果要修改数据库各种数据存放的位置，记得要修改目录所有者为clickhouse
 
 ClickHouse cluster is a homogenous cluster. Steps to set up:

@@ -58,7 +58,7 @@ timer {
 		print now() + ": 已导入 " + fp
 	}
 }
-// 用时 37m 58s
+// 用时 
 
 close(db)
 
@@ -79,7 +79,7 @@ symbols_tb =
 	group by symbol
 
 
-saveText(symbols_tb.symbol, FP_TAQ + 'symbols.txt')
+saveText(symbols_tb.symbol, taq_path + 'symbols.txt')
 
 
 mmids_tb =

@@ -1,3 +1,5 @@
+# Start zookeeper
+bin/zkServer.sh start
 
-# 配置
-ls /etc/clickhouse-server
+# Connect to zookeeper
+bin/zkCli.sh -server 127.0.0.1:2181

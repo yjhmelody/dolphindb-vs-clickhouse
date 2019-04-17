@@ -109,10 +109,10 @@
 
 
     <!-- Path to data directory, with trailing slash. -->
-    <path>/data/clickhouse</path>
+    <path>/mnt/data/clickhouse</path>
 
     <!-- Path to temporary data for processing hard queries. -->
-    <tmp_path>/data/clickhouse/tmp/</tmp_path>
+    <tmp_path>/mnt/data/clickhouse/tmp/</tmp_path>
 
     <!-- Directory with user provided files that are accessible by 'file' table function. -->
     <user_files_path>/var/lib/clickhouse/user_files/</user_files_path>

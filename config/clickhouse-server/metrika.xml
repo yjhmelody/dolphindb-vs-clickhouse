@@ -2,30 +2,22 @@
 
 
     <clickhouse_remote_servers>
-        <!-- 2分片2备份 -->
+        <!-- 2分片无复制 -->
         <cluster_2shard_2replicas>
 
             <!-- 数据分片1 -->
             <shard>
                 <replica>
-                    <host>localhost</host>
+                    <host>192.168.1.119</host>
                     <port>9000</port>
-                </replica>
-                <replica>
-                    <host>localhost</host>
-                    <port>9001</port>
                 </replica>
             </shard>
 
             <!-- 数据分片2 -->
             <shard>
                 <replica>
-                    <host>localhost</host>
-                    <port>9002</port>
-                </replica>
-                <replica>
-                    <host>localhost</host>
-                    <port>9003</port>
+                    <host>192.178.1.201</host>
+                    <port>9000</port>
                 </replica>
             </shard>
 
@@ -35,7 +27,7 @@
     <!-- ZK  -->
     <zookeeper-servers>
         <node index="1">
-          <host>localhost</host>
+          <host>192.168.1.109</host>
           <port>2181</port>
         </node>
       <!--   
