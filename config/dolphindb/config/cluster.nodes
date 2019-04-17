@@ -1,3 +1,5 @@
 localSite,mode
 192.168.1.109:8960:agent1,agent
 192.168.1.109:8961:node1,datanode
+192.168.1.119:8960:agent2,agent
+192.168.1.119:8961:node2,datanode
