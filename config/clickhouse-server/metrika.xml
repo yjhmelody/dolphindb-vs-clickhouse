@@ -3,7 +3,7 @@
 
     <clickhouse_remote_servers>
         <!-- 2分片无复制 -->
-        <cluster_2shard_2replicas>
+        <cluster_2shard_1replicas>
 
             <!-- 数据分片1 -->
             <shard>
@@ -21,7 +21,7 @@
                 </replica>
             </shard>
 
-        </cluster_2shard_2replicas>
+        </cluster_2shard_1replicas>
     </clickhouse_remote_servers>
 
     <!-- ZK  -->
