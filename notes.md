@@ -31,15 +31,15 @@ ClickHouse needs ZooKeeper to build cluster
 - 分布式+高可用方案1, 考虑数据的安全性，即副本, MergeTree + Distributed + 集群复制
 - 分布式+高可用方案2, ReplicatedMergeTree + Distributed, 仅仅是把MergeTree引擎替换为ReplicatedMergeTree引擎, ReplicatedMergeTree里，共享同一个ZK路径的表，会相互，注意是，相互同步数据
 
-| Column | DolphinDB 数据类型    | ClickHouse 数据类型    |
-| ------ | --------------------- | ---------------------- |
-| symbol | SYMBOL (分区第二维度) | String                 |
-| date   | DATE (分区第一维度)   | Datetime               |
-| time   | SECOND                | 与 date 合并为一个字段 |
-| bid    | DOUBLE                | Float64                |
-| ofr    | DOUBLE                | Float64                |
-| bidsiz | INT                   | Int32                  |
-| ofrsiz | INT                   | Int32                  |
-| mode   | INT                   | Int32                  |
-| ex     | CHAR                  | Int8                   |
-| mmid   | SYMBOL                | String                 |
+| Column | DolphinDB 数据类型    | ClickHouse 数据类型 |
+| ------ | --------------------- | ------------------- |
+| symbol | SYMBOL (分区第二维度) | String              |
+| date   | DATE (分区第一维度)   | Date                |
+| time   | SECOND                | DateTime            |
+| bid    | DOUBLE                | Float64             |
+| ofr    | DOUBLE                | Float64             |
+| bidsiz | INT                   | Int32               |
+| ofrsiz | INT                   | Int32               |
+| mode   | INT                   | Int32               |
+| ex     | CHAR                  | Int8                |
+| mmid   | SYMBOL                | String              |

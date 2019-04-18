@@ -1,0 +1,4 @@
+Server,jc,192.168.1.109,8990,,admin,123456
+Server,local8848,localhost,8848,,,
+Server,yjh,localhost,8961,,,
+ActiveServer,jc

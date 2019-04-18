@@ -1,29 +1,25 @@
-// func testing
-pnodeRun(sum{1..10}, `node1)
+login(`admin, `123456)
 
-getClusterDFSDatabases()
-
-
-
-// ----------------- 路径配置
+// ----------------- 参数
 taq_path = '/mnt/data/TAQ/'
 sample_taq_path = taq_path + 'TAQ20070801.csv'
 db_path = 'dfs://TAQ'
-
-
-// ----------------- 创建 schema
+table_name = `taq
 tb_schema = extractTextSchema(sample_taq_path)
-
-
-// 将列名调整为小写避免与 DolphinDB 内置的 SYMBOL, DATE, TIME 等保留关键字产生冲突
-
 schema = table(lower(tb_schema.name) as name, tb_schema.type)
 print(schema)
 
-// 加载 sample table, 用第一个 CSV 中的股票代码频率作为分区范围的依据
-sample_tb = ploadText(sample_taq_path, , schema)
-// 用时 
+// ----------------- 删除数据库
+// dropDatabase(db_path);
 
+
+// ----------------- 创建 schema
+// 将列名调整为小写避免与 DolphinDB 内置的 SYMBOL, DATE, TIME 等保留关键字产生冲突
+tb_schema = extractTextSchema(sample_taq_path)
+schema = table(lower(tb_schema.name) as name, tb_schema.type)
+
+// 加载 sample table, 用第一个 CSV 中的股票代码频率作为分区范围的依据
+sample_tb = ploadText(sample_taq_path,   , schema)
 sample_freq_tb = select count(*) from sample_tb group by symbol
 print(sample_freq_tb)
 sample_tb = NULL
@@ -36,117 +32,120 @@ buckets = cutPoints(sample_freq_tb.symbol, BIN_NUM, sample_freq_tb.count)
 buckets[BIN_NUM] = `ZZZZZZ		// 调整最右边界
 
 
+
+
 // ----------------- 创建数据库分区
 DATE_RANGE = 2007.08.01..2007.08.31
 
 date_schema   = database("", VALUE, DATE_RANGE)
 symbol_schema = database("", RANGE, buckets)
 db = database(db_path, COMPO, [date_schema, symbol_schema])
-db.createPartitionedTable(table(100:0, schema.name, schema.type), `insert_data, `date`symbol)
-
-
-// --------------------- 导入数据
-csv_path = taq_path + 'csv/'
-file_paths = csv_path + (exec filename from files(csv_path) order by filename)
-
-// pt = loadTextEx(db, `taq, `date`symbol, fps[0], ,schema)
-
-// 顺序读取 23 个文件
-timer {
-	for (fp in file_paths) {
-		loadTextEx(db, `taq, `date`symbol, fp, ,schema)
-		print now() + ": 已导入 " + fp
-	}
-}
-// 用时 
-
+db.createPartitionedTable(table(100:0, schema.name, schema.type), table_name, `date`symbol)
 close(db)
 
 
 
+
+
+// ----------------- 分割文件
+files = taq_path + (exec filename from files(taq_path) order by filename);
+half = size(files) / 2;
+files_1 = files[:half]
+files_2 = files[half:]
+print("files1: ", files_1)
+print("files2: ", files_2)
+
+
+
+
+// --------------------- 导入数据
+def loadCSV(db_path, files) {
+	db = database(db_path)
+	for (f in files) {
+			print(f)
+			if(endsWith(f, '.csv') && startsWith(f, '/mnt/data/TAQ/TAQ')) {
+				loadTextEx(db, `taq, `date`symbol, f)
+			}
+	}
+}
+
+
+taq = db.loadTable(`taq)
+rpc(`node1, submitJob, `node1, "load csv", loadCSV, db_path, files_1);
+rpc(`node2, submitJob, `node2, "load csv", loadCSV, db_path, files_2);
+
+pnodeRun(getRecentJobs)	
+// notes: read ~100MB  write 10~30MB network 8~13MB
+// time: 35 min 30.3 s
+
+
+
+
 // --------------------- 加载数据库
+login(`admin, `123456)
+
+db_path = 'dfs://TAQ'
 db = database(db_path)
 taq = db.loadTable(`taq)
 
 
 
-// --------------------- 将股票代码和 mmid 的所有取值导出，以此创建 TimescaleDB 的 enum type 的可能取值
-select count(*) from taq
-
-symbols_tb =
-	select count(*)
-	from taq
-	group by symbol
-
-
-saveText(symbols_tb.symbol, taq_path + 'symbols.txt')
-
-
-mmids_tb =
-	select count(*)
-	from taq
-	group by mmid
-// FLOW, EDGX, EDGA, NASD  ->  作为 TimescaleDB 的 Mmid enum type 的可能值
-
-
-
-
 // ---------------- 查询性能测试
+pnodeRun(clearAllCache);
 
 // 查询总记录数
 timer
 select count(*) from taq
 where date <= 2007.08.07
+// times: 46.366 ms  27.921 ms  30.922 ms
 
 
 
 // 1. 点查询：按股票代码、时间查询
 timer
-select *
-from taq
+select * from taq
 where
 	symbol = 'IBM', 
 	date == 2007.08.07
+// times: 116.748 ms  149.129 ms  165.471 ms
 
 
 
 
 // 2. 范围查询：查询某时间段内的某些股票的所有记录
-timer
-select symbol, time, bid, ofr 
-from taq 
-where 
+timer 
+select symbol, time, bid, ofr from taq 
+where
 	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),
 	date between 2007.08.03 : 2007.08.07,
 	time between 09:30:00 : 09:40:00,
 	bid > 20
 
+// times: 182.99 ms  210.585 ms  208.487 ms
 
 
 // 3. top 1000 + 排序: 按 [股票代码、日期] 过滤，按 [卖出与买入价格差] 降序 排序
 timer 
-select top 1000 *
-from taq 
+select top 1000 * from taq 
 where
 	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),
 	date == 2007.08.07,
 	time >= 07:36:37,
 	ofr > bid
 order by (ofr - bid) desc
+// times: 173.155 ms  199.938 ms  187.943 ms
 
 
 
-// 4. 聚合查询.单分区维度
+// 4. 聚合查询. 单分区维度
 timer 
-select 
-	max(bid) as max_bid,
-	min(ofr) as min_ofr
-from taq
+select max(bid) as max_bid, min(ofr) as min_ofr from taq
 where 
 	date == 2007.08.02,
 	symbol == 'IBM',
 	ofr > bid
 group by minute(time)
+// times: 45.3 ms  101.986 ms  74.189 ms
 
 
 
@@ -164,21 +163,21 @@ where
 	ofr > 20
 group by symbol, minute(time) 
 order by symbol asc, minute_time asc
+// times: 136.7 ms  166.143 m  157.184 ms
 
 
 
 
 // 6. 经典查询：按 [多个股票代码、日期，时间范围、报价范围] 过滤，查询 [股票代码、时间、买入价、卖出价]
 timer
-select symbol, time, bid, ofr
-from taq
+select symbol, time, bid, ofr from taq
 where
 	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'), 
 	date = 2007.08.03, 
 	time between 09:30:00 : 14:30:00, 
 	bid > 0, 
 	ofr > bid
-
+// times: 1476.851 ms  1505.925 ms  1546.055 ms
 
 
 
@@ -192,6 +191,7 @@ where
 	bid > 0,
 	ofr > bid
 group by symbol, minute(time) as minute
+// times: 6579.806 ms  6561.861 ms  6793.162 ms
 
 
 
@@ -204,6 +204,7 @@ where
 	bid > 0, 
 	ofr > bid
 group by symbol, minute(time) as minute
+// times: 4413.58 ms  4313.455 ms  4344.721 ms
 
 
 
@@ -216,6 +217,7 @@ where
 	date between 2007.08.01 : 2007.08.07,
 	time between 09:30:00 : 16:00:00
 group by date, minute(time) as minute
+// times: 146.258 ms 133.078 ms
 
 
 
@@ -227,6 +229,7 @@ where
 	date between 2007.08.05 : 2007.08.07,
 	time between 09:30:00 : 16:00:00
 group by symbol, date
+// times: 11138.148 ms  3845.77 ms
 
 
 
@@ -238,5 +241,15 @@ where date between 2007.08.05 : 2007.08.06
 group by date, symbol
 	having sum(bidsiz) > 0
 order by date desc, symbol
+// times: 2664.635 ms  1357.005 ms
+
+/*
+select * from pnodeRun(getAllChunks) where dfsPath like "%IBM"
+
+select * from pnodeRun(getAllChunks)
+where 
+	dfsPath like "%I"
+*/
 
 
+	
