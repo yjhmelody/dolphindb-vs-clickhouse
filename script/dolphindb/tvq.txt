@@ -90,16 +90,16 @@ taq = db.loadTable(`taq)
 
 
 
-// ---------------- 查询性能测试
+// ------------------------ 查询性能测试 --------------------------------------
 pnodeRun(clearAllCache);
 
 // 查询总记录数
 timer
 select count(*) from taq
 where date <= 2007.08.07
-// times: 46.366 ms  27.921 ms  30.922 ms
-
-
+// times: 46.366 ms  31.089 ms  38.358 ms
+// 连续查询 36.858 ms  37.689 ms  37.806 ms
+// 内存 0.3 0.3
 
 // 1. 点查询：按股票代码、时间查询
 timer
@@ -108,7 +108,8 @@ where
 	symbol = 'IBM', 
 	date == 2007.08.07
 // times: 116.748 ms  149.129 ms  165.471 ms
-
+// 连续查询 10.742 ms  11.612 ms  7.174 ms
+// 内存 136.3 0.3
 
 
 
@@ -122,6 +123,9 @@ where
 	bid > 20
 
 // times: 182.99 ms  210.585 ms  208.487 ms
+// 连续查询 67.443 ms  65.755 ms  66.841 ms
+// 内存 744.3  264.3
+
 
 
 // 3. top 1000 + 排序: 按 [股票代码、日期] 过滤，按 [卖出与买入价格差] 降序 排序
@@ -134,6 +138,8 @@ where
 	ofr > bid
 order by (ofr - bid) desc
 // times: 173.155 ms  199.938 ms  187.943 ms
+// 连续查询 27.077 ms  22.249 ms  28.478 ms
+// 内存 588.3 0.3
 
 
 
@@ -146,6 +152,8 @@ where
 	ofr > bid
 group by minute(time)
 // times: 45.3 ms  101.986 ms  74.189 ms
+// 连续查询 16.361 ms  32.176 ms  12.529 ms
+// 内存 0.3 72.3 MB
 
 
 
@@ -164,7 +172,8 @@ where
 group by symbol, minute(time) 
 order by symbol asc, minute_time asc
 // times: 136.7 ms  166.143 m  157.184 ms
-
+// 连续查询 46.203 ms  45.151 ms  45.131 ms
+// 内存 364.3  0.3
 
 
 
@@ -178,6 +187,8 @@ where
 	bid > 0, 
 	ofr > bid
 // times: 1476.851 ms  1505.925 ms  1546.055 ms
+// 连续查询 1429.415 ms  1463.056 ms  1424.289 ms
+// 内存 168.3  168.3
 
 
 
@@ -192,6 +203,8 @@ where
 	ofr > bid
 group by symbol, minute(time) as minute
 // times: 6579.806 ms  6561.861 ms  6793.162 ms
+// 连续查询 6143.717 ms 5999.691 ms  6455.538 ms
+// 内存 1,537.6  1,423.1
 
 
 
@@ -205,6 +218,8 @@ where
 	ofr > bid
 group by symbol, minute(time) as minute
 // times: 4413.58 ms  4313.455 ms  4344.721 ms
+// 连续查询 4057.016 ms 4058.613 ms 4145.638 ms
+// 内存 	5,040.6  3,888.5 
 
 
 
@@ -217,7 +232,9 @@ where
 	date between 2007.08.01 : 2007.08.07,
 	time between 09:30:00 : 16:00:00
 group by date, minute(time) as minute
-// times: 146.258 ms 133.078 ms
+// times: 146.258 ms 133.078 ms  177.921 ms
+// 连续查询 28.464 ms  23.873 ms  24.132 ms
+// 内存 196.3 308.3 
 
 
 
@@ -229,7 +246,9 @@ where
 	date between 2007.08.05 : 2007.08.07,
 	time between 09:30:00 : 16:00:00
 group by symbol, date
-// times: 11138.148 ms  3845.77 ms
+// times: 11138.148 ms  3845.77 ms  3991.298 ms
+// 连续查询 1961.145 ms  2068.212 ms  1993.328 ms
+// 内存 8,962.8  11,900.9
 
 
 
@@ -241,7 +260,11 @@ where date between 2007.08.05 : 2007.08.06
 group by date, symbol
 	having sum(bidsiz) > 0
 order by date desc, symbol
-// times: 2664.635 ms  1357.005 ms
+// times: 2664.635 ms  1357.005 ms 1465.089 ms
+// 连续查询 676.901 ms  630.876 ms  632.98 ms
+// 内存 3,322.5  4,240.6
+
+
 
 /*
 select * from pnodeRun(getAllChunks) where dfsPath like "%IBM"
