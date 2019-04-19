@@ -1,4 +1,6 @@
-USE TAQ;
+SELECT * FROM system.clusters;
+SELECT * FROM system.zookeeper WHERE path = '/clickhouse';
+SELECT memory_usage, query, peak_memory_usage FROM system.processes
 
 DROP TABLE IF EXISTS taq_local;
 DROP TABLE IF EXISTS taq_all;
@@ -10,8 +12,8 @@ DROP TABLE IF EXISTS taq_all;
 --     (primary, key) — 主键。类型 — Tuple()
 --     index_granularity — 索引粒度。即索引中相邻『标记』间的数据行数。设为 8192 可以适用大部分场景。
 
+-- 默认情况下主键跟排序键（由ORDER BY子句指定）相同。因此，大部分情况下不需要再专⻔指定一个PRIMARY KEY子句。
 
-USE TAQ;
 CREATE TABLE IF NOT EXISTS taq_local (
     symbol String,
     date Date,
@@ -30,14 +32,20 @@ SETTINGS index_granularity=8192;
 
 -- 创建分布式表
 CREATE TABLE taq_all AS taq_local
-ENGINE = Distributed(cluster_2shard_2replicas, default, taq_local, rand());
+ENGINE = Distributed(cluster_2shard_replicas, default, taq_local, rand());
 
-INSERT INTO taq_local VALUES ('A', '2007-08-01', toDateTime('2007-08-01 06:24:34' , 'UTC'), 1, 0, 1, 0, 12,'P', NULL);
+-- INSERT INTO taq_local VALUES ('A', '2007-08-01', toDateTime('2007-08-01 016:24:34' , 'UTC'), 1, 0, 1, 0, 12,'P', NULL);
 
 INSERT INTO taq_local VALUES ('A', '2007-08-01', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
 
+INSERT INTO taq_all VALUES ('A', '2007-08-01', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
 
-SELECT * FROM taq_local;
+
+SELECT * FROM taq_local ORDER BY time ASC;
+
+
+SELECT * FROM taq_all ORDER BY time ASC;
+
 -- symbol,date,time,bid,ofr,bidsiz,ofrsiz,mode,ex,mmid
 -- A,20070801,6:24:34,1,0,  1,      0,     12,  P,
 
