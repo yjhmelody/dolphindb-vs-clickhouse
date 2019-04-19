@@ -25,12 +25,15 @@ ClickHouse提供各种各样在允许牺牲数据精度的情况下对查询进�
 
 ### 服务器环境
 
+主机：DELL OptiPlex 7060
+CPU：Intel Core i7-8700（6 核 12 线程 3.20 GHz）
+内存：32 GB （8GB × 4, 2666 MHz）
+硬盘：2T HDD （222 MB/s 读取；210 MB/s 写入）
+OS：Ubuntu 16.04 LTS
+
 对于DolphinDB，在一台服务器上建立一个控制节点，在另外2台服务器各建立1个代理节点并分别管理1个数据节点。
 在本次测试中，主要工作集中在数据节点上。
 
-<!-- 主机：DELL OptiPlex 7060
-CPU ：Intel Core i7-8700（6 核 12 线程 3.20 GHz）
-内存：32 GB （8GB × 4, 2666 MHz）
-硬盘：2T HDD （222 MB/s 读取；210 MB/s 写入）
-OS：Ubuntu 16.04 LTS -->
+对于ClickHouse，使用2台建立集群，第3台作为zookeeper的单独服务器。
+
 
