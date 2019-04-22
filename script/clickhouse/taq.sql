@@ -66,7 +66,7 @@ SELECT * FROM taq ORDER BY time ASC;
 
 ---------------------------- 查询
 SELECT count(*) FROM taq;
--- 23s 546ms  20s 191ms
+-- 23s 546ms  后面总是有缓存
 -- 连续查询 455ms 461ms 462ms
 
 --- 查看内存占用
@@ -97,7 +97,7 @@ WHERE
 	AND toYYYYMMDD(time) BETWEEN 20070803 AND 20070807
 	AND bid > 20
 ;
--- times: 764 ms  789 ms  767 ms
+-- times: 764ms  789ms  767ms
 -- 连续查询 792 ms  802 ms  799 ms
 
 
@@ -113,7 +113,7 @@ WHERE
 ORDER BY (ofr - bid) DESC
 LIMIT 1000
 ;
--- times: 55 ms 80 ms  42ms
+-- times: 55ms  80 ms  42ms
 -- 连续查询 48ms  41ms  41ms
 
 
@@ -136,7 +136,7 @@ WHERE
 	AND ofr > bid
 GROUP BY toStartOfMinute(time)
 ;
--- times: 19 ms  26ms  24ms
+-- times: 19ms  26ms  24ms
 -- 连续查询 22ms 29ms  27ms
 
 
@@ -170,7 +170,7 @@ WHERE
 GROUP BY symbol, toStartOfMinute(time) AS minute_time
 ORDER BY symbol ASC , minute_time ASC
 ;
--- times:  116ms 118ms
+-- times:  116ms 118ms  92ms
 -- 连续查询 87ms  59ms  66ms
 
 

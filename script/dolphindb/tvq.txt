@@ -97,9 +97,8 @@ pnodeRun(clearAllCache);
 // 查询总记录数
 timer
 select count(*) from taq
-where date <= 2007.08.07
-// times: 46.366 ms  31.089 ms  38.358 ms
-// 连续查询 36.858 ms  37.689 ms  37.806 ms
+// times: 104.845 ms  109.113 ms  104.539 ms
+// 连续查询 102.609 ms  93.695 ms  84.633 ms
 // 内存 0.3 0.3
 
 // 1. 点查询：按股票代码、时间查询
