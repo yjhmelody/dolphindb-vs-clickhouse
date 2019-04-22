@@ -26,8 +26,25 @@ CREATE TABLE IF NOT EXISTS taq_local (
     ex FixedString(1),
     mmid Nullable(String)
 ) ENGINE = MergeTree()
-PARTITION BY toYYYYMM(date)
-ORDER BY (symbol, date)
+PARTITION BY toYYYYMM(time)
+ORDER BY (symbol, toYYYYMM(time))
+SETTINGS index_granularity=8192;
+
+
+-- 另外一种模式
+CREATE TABLE IF NOT EXISTS taq_local3 (
+    symbol String,
+    time DateTime,
+    bid Float64,
+    ofr Float64,
+    bidSiz Int32,
+    ofrsiz Int32,
+    mode Int32,
+    ex FixedString(1),
+    mmid Nullable(String)
+) ENGINE = MergeTree()
+PARTITION BY (toDate(time), symbol)
+ORDER BY (toYYYYMMDD(time), symbol)
 SETTINGS index_granularity=8192;
 
 -- 创建分布式表
@@ -35,28 +52,34 @@ CREATE TABLE taq AS taq_local
 ENGINE = Distributed(cluster_2shard_replicas, default, taq_local, rand());
 
 -- INSERT INTO taq_local VALUES ('A', '2007-08-01', toDateTime('2007-08-01 016:24:34' , 'UTC'), 1, 0, 1, 0, 12,'P', NULL);
-
-INSERT INTO taq VALUES ('A', '2007-08-01', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
+-- INSERT INTO taq VALUES ('A', '2007-08-01', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
 
 SELECT * FROM taq_local ORDER BY time ASC;
 
 SELECT * FROM taq ORDER BY time ASC;
 
--- symbol,date,time,bid,ofr,bidsiz,ofrsiz,mode,ex,mmid
--- A,20070801,6:24:34,1,0,  1,      0,     12,  P,
+
+-- 2节点并发插入分布式表
+-- times: 42mins 58s  52mins 48s
 
 
 
---------- 查询
+---------------------------- 查询
+SELECT count(*) FROM taq;
+-- 23s 546ms  20s 191ms
+-- 连续查询 455ms 461ms 462ms
+
+--- 查看内存占用
+select value / 1024 / 1024 / 1024 from system.metrics where metric = 'MemoryTracking';
+
 -- 1. 点查询：按股票代码、时间查询
 SELECT * FROM taq
 WHERE
 	symbol = 'IBM'
     AND date = toDate('2007-08-07')
 ;
--- times: 116.748 ms  149.129 ms  165.471 ms
--- 连续查询 10.742 ms  11.612 ms  7.174 ms
--- 内存 136.3 0.3
+-- times: 138 ms  141 ms  147ms
+-- 连续查询  145ms  144ms  144ms
 
 
 
@@ -64,12 +87,18 @@ WHERE
 SELECT symbol, time, bid, ofr FROM taq
 WHERE
 	symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO')
-	AND time BETWEEN toDateTime('2007-08-03 09:30:00') AND toDate('2007-08-07 09:40:00')
+	AND toDate(time) BETWEEN '2007-08-03' AND '2007-08-07'
 	AND bid > 20
 ;
--- times: 182.99 ms  210.585 ms  208.487 ms
--- 连续查询 67.443 ms  65.755 ms  66.841 ms
--- 内存 744.3  264.3
+--- or ?
+SELECT symbol, time, bid, ofr FROM taq
+WHERE
+	symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO')
+	AND toYYYYMMDD(time) BETWEEN 20070803 AND 20070807
+	AND bid > 20
+;
+-- times: 764 ms  789 ms  767 ms
+-- 连续查询 792 ms  802 ms  799 ms
 
 
 
@@ -84,23 +113,32 @@ WHERE
 ORDER BY (ofr - bid) DESC
 LIMIT 1000
 ;
--- times: 173.155 ms  199.938 ms  187.943 ms
--- 连续查询 27.077 ms  22.249 ms  28.478 ms
--- 内存 588.3 0.3
+-- times: 55 ms 80 ms  42ms
+-- 连续查询 48ms  41ms  41ms
 
 
 
 -- 4. 聚合查询. 单分区维度
 SELECT max(bid) as max_bid, min(ofr) AS min_ofr FROM taq
 WHERE
-	date = toDate('2007-08-02')
+	toDate(time) = toDate('2007-08-02')
 	AND symbol = 'IBM'
 	AND ofr > bid
 GROUP BY toStartOfMinute(time)
 ;
--- times: 45.3 ms  101.986 ms  74.189 ms
--- 连续查询 16.361 ms  32.176 ms  12.529 ms
--- 内存 0.3 72.3 MB
+
+---- or
+
+SELECT max(bid) as max_bid, min(ofr) AS min_ofr FROM taq
+WHERE
+	toYYYYMMDD(time) = 20070802
+	AND symbol = 'IBM'
+	AND ofr > bid
+GROUP BY toStartOfMinute(time)
+;
+-- times: 19 ms  26ms  24ms
+-- 连续查询 22ms 29ms  27ms
+
 
 
 
@@ -117,9 +155,24 @@ WHERE
 GROUP BY symbol, toStartOfMinute(time) AS minute_time
 ORDER BY symbol ASC , minute_time ASC
 ;
--- times: 136.7 ms  166.143 m  157.184 ms
--- 连续查询 46.203 ms  45.151 ms  45.131 ms
--- 内存 364.3  0.3
+
+------ or
+
+SELECT
+	stddevPop(bid) 	AS std_bid,
+	sum(bidSiz) AS sum_bidsiz
+FROM taq
+WHERE
+	toYYYYMMDDhhmmss(time) BETWEEN 20070807090000  AND 20070807210000
+	AND symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO')
+	AND bid >= 20
+	AND ofr > 20
+GROUP BY symbol, toStartOfMinute(time) AS minute_time
+ORDER BY symbol ASC , minute_time ASC
+;
+-- times:  116ms 118ms
+-- 连续查询 87ms  59ms  66ms
+
 
 
 
@@ -131,10 +184,39 @@ where
 	AND bid > 0
     AND ofr > bid
 ;
--- times: 1476.851 ms  1505.925 ms  1546.055 ms
--- 连续查询 1429.415 ms  1463.056 ms  1424.289 ms
--- 内存 168.3  168.3
+-- times: 185 ms  177 ms  183ms
+-- 连续查询 194ms  191ms 171ms
 
+
+
+
+-- 8. 经典查询：计算某天 (每个股票 每分钟) 最大卖出与最小买入价之差
+SELECT max(ofr) - min(bid) AS gap
+FROM taq
+WHERE
+	toDate(time) IN toDate('2007-08-03')
+	AND bid > 0
+	AND ofr > bid
+GROUP BY symbol, toStartOfMinute(time) AS minute
+;
+
+----- or
+
+SELECT max(ofr) - min(bid) AS gap
+FROM taq
+WHERE
+	toYYYYMMDD(time) IN 20070803
+	AND bid > 0
+	AND ofr > bid
+GROUP BY symbol, toStartOfMinute(time) AS minute
+;
+-- times: 23s 812ms  29s 471ms
+-- 连续查询 7s 608ms  7s 514ms  7s 504ms
+
+
+
+
+--------------------------------------- 下面逻辑不一致 -----------------------------------------
 
 
 -- 7. 经典查询：按 [日期、时间范围、卖出买入价格条件、股票代码] 过滤，查询 (各个股票 每分钟) [平均变化幅度]
@@ -145,24 +227,9 @@ WHERE
   AND ofr > bid
 GROUP BY symbol, toStartOfMinute(time) as minute
 ;
--- times: 6579.806 ms  6561.861 ms  6793.162 ms
--- 连续查询 6143.717 ms 5999.691 ms  6455.538 ms
+-- times:
+-- 连续查询
 -- 内存 1,537.6  1,423.1
-
-
-
--- 8. 经典查询：计算某天 (每个股票 每分钟) 最大卖出与最小买入价之差
-SELECT max(ofr) - min(bid) AS gap
-FROM taq
-WHERE
-	date IN toDate('2007-08-03')
-	AND bid > 0
-	AND ofr > bid
-GROUP BY symbol, toStartOfMinute(time) AS minute
-;
--- times: 4413.58 ms  4313.455 ms  4344.721 ms
--- 连续查询 4057.016 ms 4058.613 ms 4145.638 ms
--- 内存 	5,040.6  3,888.5
 
 
 
@@ -171,37 +238,40 @@ SELECT avg(ofr + bid) / 2.0 AS avg_price
 FROM taq
 WHERE
 	symbol = 'IBM'
-	AND date BETWEEN toDate('2007-08-01') AND toDate('2007-08-07')
+	AND toDate(time) BETWEEN toDate('2007-08-01') AND toDate('2007-08-07')
     AND ((toHour(time) AS hour BETWEEN 10 AND 16) OR (hour = 9 AND toMinute(time) >= 30)
 -- 	AND time BETWEEN 09:30:00 : 16:00:00
 GROUP BY date, toStartOfMinute(time) AS minute
 ;
--- times: 146.258 ms 133.078 ms  177.921 ms
--- 连续查询 28.464 ms  23.873 ms  24.132 ms
+-- times:
+-- 连续查询
 -- 内存 196.3 308.3
 
 
 
+
 -- 10. 经典查询：按 [日期段、时间段] 过滤, 查询 (每股票，每天) 均价
-select avg(ofr + bid) / 2.0 as avg_price
-from taq
-where
-	date between 2007.08.05 : 2007.08.07,
-	time between 09:30:00 : 16:00:00
-group by symbol, date
--- times: 11138.148 ms  3845.77 ms  3991.298 ms
--- 连续查询 1961.145 ms  2068.212 ms  1993.328 ms
+SELECT avg(ofr + bid) / 2.0 AS avg_price
+FROM taq
+WHERE
+	time BETWEEN '2007-08-05 09:30:00' AND '2007-08-07 16:00:00'
+GROUP BY symbol, toYYYYMMDD(time)
+;
+-- times:
+-- 连续查询
 -- 内存 8,962.8  11,900.9
 
 
 
+
 -- 11. 经典查询：计算 某个日期段 有成交记录的 (每天, 每股票) 加权均价，并按 (日期，股票代码) 排序
+-- 没有wavg
 select wavg(bid, bidsiz) as vwab
 from taq
-where date between 2007.08.05 : 2007.08.06
-group by date, symbol
+where toDate(time) between '2007-08-05'  AND '2007-08-06'
+group by toDate(time), symbol
 	having sum(bidsiz) > 0
-order by date desc, symbol
--- times: 2664.635 ms  1357.005 ms 1465.089 ms
--- 连续查询 676.901 ms  630.876 ms  632.98 ms
+order by toDate(time) desc, symbol
+-- times:
+-- 连续查询
 -- 内存 3,322.5  4,240.6

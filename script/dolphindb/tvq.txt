@@ -35,6 +35,7 @@ buckets[BIN_NUM] = `ZZZZZZ		// 调整最右边界
 
 
 // ----------------- 创建数据库分区
+// 按 date(日期), symbol(股票代码) 进行分区，每天再根据 symbol 分为 100 个分区
 DATE_RANGE = 2007.08.01..2007.08.31
 
 date_schema   = database("", VALUE, DATE_RANGE)
