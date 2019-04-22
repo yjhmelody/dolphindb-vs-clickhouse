@@ -180,7 +180,7 @@ ORDER BY symbol ASC , minute_time ASC
 SELECT symbol, time, bid, ofr FROM taq
 where
 	symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO')
-	AND time BETWEEN toDateTime('2007-08-03 09:30:00') AND toDateTime('2007-08-03 14:30:00')
+	AND time BETWEEN '2007-08-03 09:30:00' AND '2007-08-03 14:30:00'
 	AND bid > 0
     AND ofr > bid
 ;
