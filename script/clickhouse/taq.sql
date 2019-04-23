@@ -64,6 +64,17 @@ SELECT * FROM taq ORDER BY time ASC;
 
 
 
+--- 窗口函数查询：查询某种股票时间的差值（s)
+SELECT symbol, time, runningDifference(time) AS time_diff FROM taq
+WHERE
+      symbol = 'YHOO'
+      AND date = '2007-08-07'
+ORDER BY time ASC
+LIMIT 10000000
+;
+
+
+
 ---------------------------- 查询
 SELECT count(*) FROM taq;
 -- 23s 546ms  后面总是有缓存
@@ -76,7 +87,7 @@ select value / 1024 / 1024 / 1024 from system.metrics where metric = 'MemoryTrac
 SELECT * FROM taq
 WHERE
 	symbol = 'IBM'
-    AND date = toDate('2007-08-07')
+    AND date = '2007-08-07'
 ;
 -- times: 138 ms  141 ms  147ms
 -- 连续查询  145ms  144ms  144ms

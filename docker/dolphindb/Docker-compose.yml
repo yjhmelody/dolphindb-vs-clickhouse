@@ -21,7 +21,7 @@ services:
       - ./cfg/cluster.cfg:/data/ddb/server/config/cluster.cfg
       - ./cfg/cluster.nodes:/data/ddb/server/config/cluster.nodes
     ports:
-      - "8888:8888"
+      - "9999:8888"
     networks:
       dbnet:
         ipv4_address: 10.5.0.5

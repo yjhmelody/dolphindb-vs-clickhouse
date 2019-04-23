@@ -94,6 +94,16 @@ taq = db.loadTable(`taq)
 // ------------------------ 查询性能测试 --------------------------------------
 pnodeRun(clearAllCache);
 
+
+// --- 窗口函数查询：查询某种股票时间的差值（s)
+timer
+select top 10000 symbol, time, deltas(time) as time_diff from taq
+where
+
+	date == 2007.08.07
+order by time asc
+
+
 // 查询总记录数
 timer
 select count(*) from taq

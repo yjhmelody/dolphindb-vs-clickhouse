@@ -4,6 +4,14 @@ volumes:
     - /etc/clickhouse-server:/etc/clickhouse-server
     - /etc/metrika.xml:/etc/metrika.xml
     - /var/log/clickhouse-server/:/var/log/clickhouse-server/
+    - /var/lib/clickhouse:/var/log/clickhouse-server/
+
+networks:
+  dbnet:
+    driver: bridge
+    ipam:
+      config:
+       - subnet: 10.5.0.0/16
 
 services: 
     node1:
@@ -127,9 +135,3 @@ services:
             dbnet:
                 ipv4_address: 10.5.0.8
 
-networks:
-  dbnet:
-    driver: bridge
-    ipam:
-      config:
-       - subnet: 10.5.0.0/16
