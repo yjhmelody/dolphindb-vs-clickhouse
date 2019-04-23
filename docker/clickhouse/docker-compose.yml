@@ -27,7 +27,6 @@ services:
         ports: 
             - "8123:8123"
             - "9000:9000"
-        
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.2

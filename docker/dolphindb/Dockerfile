@@ -16,8 +16,8 @@ RUN yum install -y wget
 RUN mkdir -p /data/ddb/
 RUN mkdir -p /data/ddb/server/config
 
-ADD default_cmd /root/
-RUN chmod 755 /root/default_cmd
+ADD entrypoint.sh /root/
+RUN chmod 755 /root/entrypoint.sh
 
 ADD ${dolphindb} /data/ddb/
 ADD ${awss3} /data/ddb/server/
@@ -33,4 +33,4 @@ RUN rm -rf /data/ddb/server/${dolphindb_version}
 RUN rm -rf /data/ddb/server/${zlib_version}
 RUN rm -rf /data/ddb/server/${awss3_version}
 
-ENTRYPOINT ["/root/default_cmd"]
+ENTRYPOINT ["/root/entrypoint.sh"]
