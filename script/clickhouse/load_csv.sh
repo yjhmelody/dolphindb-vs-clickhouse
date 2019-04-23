@@ -23,5 +23,3 @@ echo $ttime >> time.txt
 
 # 恢复
 # sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-
-
