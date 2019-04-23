@@ -1,0 +1,52 @@
+version: "3.7"
+
+networks:
+  dbnet:
+    driver: bridge
+    ipam:
+      config:
+       - subnet: 10.5.0.0/16
+
+services: 
+    node1:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/hdd0/clickhouse:/var/lib/clickhouse
+            # 这个注释了就能跑通，但是找不到原因
+            # - /hdd/hdd0/clickhouse/config:/etc/clickhouse-server
+            - /hdd/hdd0/clickhouse/config/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd0/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd0/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports: 
+            - "8123:8123"
+            - "9000:9000"
+        
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.2
+
+    node2:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/hdd1/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd1/clickhouse/config:/etc/clickhouse-server
+            - /hdd/hdd1/clickhouse/config/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd1/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd1/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.3

@@ -3,10 +3,11 @@
     <clickhouse_remote_servers>
         <!-- 2分片无复制 -->
         <cluster_2shard_1replicas>
+
             <!-- 数据分片1 -->
             <shard>
                 <replica>
-                    <host>192.168.1.119</host>
+                    <host>10.5.0.2</host>
                     <port>9000</port>
                 </replica>
             </shard>
@@ -14,7 +15,7 @@
             <!-- 数据分片2 -->
             <shard>
                 <replica>
-                    <host>192.168.1.201</host>
+                    <host>10.5.0.3</host>
                     <port>9000</port>
                 </replica>
             </shard>
@@ -24,10 +25,6 @@
 
     <!-- ZK  -->
     <zookeeper-servers>
-        <node index="1">
-          <host>192.168.1.109</host>
-          <port>2181</port>
-        </node>
     </zookeeper-servers>
 
     <!-- 数据压缩算法  -->
