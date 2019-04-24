@@ -45,6 +45,7 @@ services:
       - ./cluster/server1/P1-node1:/data/ddb/server/P1-node1
       - ./cluster/server1/P1-node2:/data/ddb/server/P1-node2
       - ./cfg/agent1.cfg:/data/ddb/server/config/agent.cfg
+      - /hdd/hdd1/data:/data
     ports:
       - "8710:8710"
       - "8711:8711"
@@ -72,6 +73,7 @@ services:
       - ./cluster/server2/P2-node1:/data/ddb/server/P2-node1
       - ./cluster/server2/P2-node2:/data/ddb/server/P2-node2
       - ./cfg/agent2.cfg:/data/ddb/server/config/agent.cfg
+      - /hdd/hdd1/data:/data
     ports:
       - "8810:8810"
       - "8811:8811"
@@ -98,6 +100,7 @@ services:
       - ./cluster/server3/P3-agent:/data/ddb/server/P3-agent
       - ./cluster/server3/P3-node1:/data/ddb/server/P3-node1
       - ./cfg/agent3.cfg:/data/ddb/server/config/agent.cfg
+      - /hdd/hdd1/data:/data
     ports:
       - "8910:8910"
       - "8911:8911"

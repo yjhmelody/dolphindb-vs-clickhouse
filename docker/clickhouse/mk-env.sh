@@ -10,3 +10,4 @@ done;
 sudo mkdir -p /hdd/etc/clickhouse-server && \
 sudo cp env/config/* /hdd/etc/clickhouse-server/ && \
 sudo cp env/config/metrika.xml /hdd/etc/metrika.xml
+
