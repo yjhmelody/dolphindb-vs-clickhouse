@@ -52,7 +52,7 @@ CREATE TABLE taq AS taq_local
 ENGINE = Distributed(cluster_8shard_1replicas, default, taq_local, rand());
 
 -- INSERT INTO taq_local VALUES ('A', '2007-08-01', toDateTime('2007-08-01 016:24:34' , 'UTC'), 1, 0, 1, 0, 12,'P', NULL);
-INSERT INTO taq VALUES ('A', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
+INSERT INTO taq_local VALUES ('A', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
 
 SELECT * FROM taq_local ORDER BY time ASC;
 

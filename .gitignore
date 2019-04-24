@@ -1,3 +1,11 @@
 .vscode
 .temp
 *.pdf
+
+*.log
+*.out
+dolphindb.lic
+*.key
+*.crt
+*.meta
+*.0

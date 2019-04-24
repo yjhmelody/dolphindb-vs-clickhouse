@@ -15,8 +15,8 @@ services:
         hard: 65536
     volumes:
       - ./cfg/dolphindb.lic:/data/ddb/server/dolphindb.lic
-      - ./Cluster/controller/master:/data/ddb/server/master
-      - ./Cluster/controller/log:/data/ddb/server/log
+      - ./cluster/controller/master:/data/ddb/server/master
+      - ./cluster/controller/log:/data/ddb/server/log
       - ./cfg/controller.cfg:/data/ddb/server/config/controller.cfg
       - ./cfg/cluster.cfg:/data/ddb/server/config/cluster.cfg
       - ./cfg/cluster.nodes:/data/ddb/server/config/cluster.nodes
@@ -40,10 +40,10 @@ services:
         hard: 65536
     volumes:
       - ./cfg/dolphindb.lic:/data/ddb/server/dolphindb.lic
-      - ./Cluster/server1/log:/data/ddb/server/log
-      - ./Cluster/server1/P1-agent:/data/ddb/server/P1-agent
-      - ./Cluster/server1/P1-node1:/data/ddb/server/P1-node1
-      - ./Cluster/server1/P1-node2:/data/ddb/server/P1-node2
+      - ./cluster/server1/log:/data/ddb/server/log
+      - ./cluster/server1/P1-agent:/data/ddb/server/P1-agent
+      - ./cluster/server1/P1-node1:/data/ddb/server/P1-node1
+      - ./cluster/server1/P1-node2:/data/ddb/server/P1-node2
       - ./cfg/agent1.cfg:/data/ddb/server/config/agent.cfg
     ports:
       - "8710:8710"
@@ -67,10 +67,10 @@ services:
         hard: 65536
     volumes:
       - ./cfg/dolphindb.lic:/data/ddb/server/dolphindb.lic
-      - ./Cluster/server2/log:/data/ddb/server/log
-      - ./Cluster/server2/P2-agent:/data/ddb/server/P2-agent
-      - ./Cluster/server2/P2-node1:/data/ddb/server/P2-node1
-      - ./Cluster/server2/P2-node2:/data/ddb/server/P2-node2
+      - ./cluster/server2/log:/data/ddb/server/log
+      - ./cluster/server2/P2-agent:/data/ddb/server/P2-agent
+      - ./cluster/server2/P2-node1:/data/ddb/server/P2-node1
+      - ./cluster/server2/P2-node2:/data/ddb/server/P2-node2
       - ./cfg/agent2.cfg:/data/ddb/server/config/agent.cfg
     ports:
       - "8810:8810"
@@ -94,9 +94,9 @@ services:
         hard: 65536
     volumes:
       - ./cfg/dolphindb.lic:/data/ddb/server/dolphindb.lic
-      - ./Cluster/server3/log:/data/ddb/server/log
-      - ./Cluster/server3/P3-agent:/data/ddb/server/P3-agent
-      - ./Cluster/server3/P3-node1:/data/ddb/server/P3-node1
+      - ./cluster/server3/log:/data/ddb/server/log
+      - ./cluster/server3/P3-agent:/data/ddb/server/P3-agent
+      - ./cluster/server3/P3-node1:/data/ddb/server/P3-node1
       - ./cfg/agent3.cfg:/data/ddb/server/config/agent.cfg
     ports:
       - "8910:8910"

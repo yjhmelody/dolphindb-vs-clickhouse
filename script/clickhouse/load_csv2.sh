@@ -11,15 +11,15 @@ echo "start time:" >> time.txt
 starttime=$(date +%Y-%m-%d\ %H:%M:%S)
 echo $starttime >> time.txt
 
-for i in 1 2 3 4 5 6 7 8 do
+for i in 1 2 3 4 5 6 7 8; do
         for filename in ./*.csv; do
-                clickhouse-client --use_client_time_zone true --query="INSERT INTO taq FORMAT CSV" < $filename
+                clickhouse-client --port --use_client_time_zone true --query="INSERT INTO taq FORMAT CSV" < $filename
         done 
 done
 
 echo "end time:" >> time.txt
-ttime=$(date +"%Y-%m-%d %H:%M:%S")
-echo $ttime >> time.txt
+endtime=$(date +"%Y-%m-%d %H:%M:%S")
+echo $endtime >> time.txt
 
 # 恢复
 # sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

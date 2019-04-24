@@ -25,7 +25,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports: 
-            - "9000:9000"
+            - "19001:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.2
@@ -34,7 +34,6 @@ services:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
-            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd2/clickhouse:/var/lib/clickhouse
             - /hdd/hdd2/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd2/data:/data
@@ -46,7 +45,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports:
-            - "9012:9000"
+            - "19002:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.3
@@ -54,7 +53,6 @@ services:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
-            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd3/clickhouse:/var/lib/clickhouse
             - /hdd/hdd3/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd3/data:/data
@@ -66,7 +64,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports:
-            - "9013:9000"
+            - "19003:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.4
@@ -75,7 +73,6 @@ services:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
-            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd4/clickhouse:/var/lib/clickhouse
             - /hdd/hdd4/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd4/data:/data
@@ -87,7 +84,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports:
-            - "9014:9000"
+            - "19004:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.5
@@ -95,7 +92,6 @@ services:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
-            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd5/clickhouse:/var/lib/clickhouse
             - /hdd/hdd5/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd5/data:/data
@@ -107,7 +103,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports:
-            - "9015:9000"
+            - "19005:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.6
@@ -115,7 +111,6 @@ services:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
-            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd6/clickhouse:/var/lib/clickhouse
             - /hdd/hdd6/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd6/data:/data
@@ -127,7 +122,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports:
-            - "9016:9000"
+            - "19006:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.7
@@ -135,7 +130,6 @@ services:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
-            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd7/clickhouse:/var/lib/clickhouse
             - /hdd/hdd7/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd7/data:/data
@@ -147,7 +141,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports:
-            - "9017:9000"
+            - "19007:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.8
@@ -155,7 +149,6 @@ services:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
-            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd8/clickhouse:/var/lib/clickhouse
             - /hdd/hdd8/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd8/data:/data
@@ -167,7 +160,7 @@ services:
                 soft: 65536
                 hard: 65536
         ports:
-            - "9020:9000"
+            - "19008:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.9

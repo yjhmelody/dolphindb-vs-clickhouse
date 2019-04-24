@@ -19,8 +19,8 @@ for filename in ./*.csv; do
 done 
 
 echo "end time:" >> time.txt
-ttime=$(date +"%Y-%m-%d %H:%M:%S")
-echo $ttime >> time.txt
+endtime=$(date +"%Y-%m-%d %H:%M:%S")
+echo $endtime >> time.txt
 
 # 恢复
 # sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
