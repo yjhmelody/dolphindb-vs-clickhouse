@@ -1,9 +1,0 @@
-localSite,mode
-10.5.0.2:8710:P1-agent,agent
-10.5.0.2:8711:P1-node1,datanode
-10.5.0.2:8712:P1-node2,datanode
-10.5.0.3:8810:P2-agent,agent
-10.5.0.3:8811:P2-node1,datanode
-10.5.0.3:8812:P2-node2,datanode
-10.5.0.4:8910:P3-agent,agent
-10.5.0.4:8911:P3-node1,datanode
