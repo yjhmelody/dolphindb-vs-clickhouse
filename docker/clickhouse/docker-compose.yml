@@ -11,32 +11,10 @@ services:
     node1:
         image: yandex/clickhouse-server:19.4.4.33
         volumes: 
-            - /hdd/hdd0/clickhouse:/var/lib/clickhouse
+            - /hdd/etc/metrika.xml:/etc/metrika.xml            
             # 这个注释了就能跑通，但是找不到原因
-            # - /hdd/hdd0/clickhouse/config:/etc/clickhouse-server
-            - /hdd/hdd0/clickhouse/config/metrika.xml:/etc/metrika.xml
-            - /hdd/hdd0/clickhouse/log:/var/log/clickhouse-server
-            - /hdd/hdd0/data:/data
-        ulimits: 
-            memlock:
-                soft: -1
-                hard: -1
-            nofile:
-                soft: 65536
-                hard: 65536
-        ports: 
-            - "8123:8123"
-            - "9000:9000"
-        networks: 
-            dbnet:
-                ipv4_address: 10.5.0.2
-
-    node2:
-        image: yandex/clickhouse-server:19.4.4.33
-        volumes: 
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
             - /hdd/hdd1/clickhouse:/var/lib/clickhouse
-            - /hdd/hdd1/clickhouse/config:/etc/clickhouse-server
-            - /hdd/hdd1/clickhouse/config/metrika.xml:/etc/metrika.xml
             - /hdd/hdd1/clickhouse/log:/var/log/clickhouse-server
             - /hdd/hdd1/data:/data
         ulimits: 
@@ -46,6 +24,150 @@ services:
             nofile:
                 soft: 65536
                 hard: 65536
+        ports: 
+            - "9000:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.2
+
+    node2:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
+            - /hdd/hdd2/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd2/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd2/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9012:9000"
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.3
+    node3:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
+            - /hdd/hdd3/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd3/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd3/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9013:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.4
+
+    node4:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
+            - /hdd/hdd4/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd4/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd4/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9014:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.5
+    node5:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
+            - /hdd/hdd5/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd5/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd5/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9015:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.6
+    node6:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
+            - /hdd/hdd6/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd6/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd6/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9016:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.7
+    node7:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
+            - /hdd/hdd7/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd7/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd7/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9017:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.8
+    node8:
+        image: yandex/clickhouse-server:19.4.4.33
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            # - /hdd/etc/clickhouse-server:/etc/clickhouse-server
+            - /hdd/hdd8/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd8/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd8/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "9020:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.9

@@ -32,7 +32,7 @@ SETTINGS index_granularity=8192;
 
 
 -- 另外一种模式
-CREATE TABLE IF NOT EXISTS taq_local3 (
+CREATE TABLE IF NOT EXISTS taq_local (
     symbol String,
     time DateTime,
     bid Float64,
@@ -49,10 +49,10 @@ SETTINGS index_granularity=8192;
 
 -- 创建分布式表
 CREATE TABLE taq AS taq_local
-ENGINE = Distributed(cluster_2shard_replicas, default, taq_local, rand());
+ENGINE = Distributed(cluster_8shard_1replicas, default, taq_local, rand());
 
 -- INSERT INTO taq_local VALUES ('A', '2007-08-01', toDateTime('2007-08-01 016:24:34' , 'UTC'), 1, 0, 1, 0, 12,'P', NULL);
--- INSERT INTO taq VALUES ('A', '2007-08-01', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
+INSERT INTO taq VALUES ('A', '2017-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
 
 SELECT * FROM taq_local ORDER BY time ASC;
 
