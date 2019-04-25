@@ -273,16 +273,3 @@ order by date desc, symbol
 // times: 2664.635 ms  1357.005 ms 1465.089 ms
 // 连续查询 676.901 ms  630.876 ms  632.98 ms
 // 内存 3,322.5  4,240.6
-
-
-
-/*
-select * from pnodeRun(getAllChunks) where dfsPath like "%IBM"
-
-select * from pnodeRun(getAllChunks)
-where 
-	dfsPath like "%I"
-*/
-
-
-	

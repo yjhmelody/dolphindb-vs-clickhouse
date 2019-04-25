@@ -20,7 +20,7 @@
                     <port>9000</port>
                 </replica>
             </shard>
-              <shard>
+            <shard>
                 <replica>
                     <host>10.5.0.5</host>
                     <port>9000</port>
@@ -32,7 +32,7 @@
                     <port>9000</port>
                 </replica>
             </shard>
-              <shard>
+            <shard>
                 <replica>
                     <host>10.5.0.7</host>
                     <port>9000</port>
@@ -44,7 +44,7 @@
                     <port>9000</port>
                 </replica>
             </shard>
-              <shard>
+            <shard>
                 <replica>
                     <host>10.5.0.9</host>
                     <port>9000</port>
@@ -54,15 +54,31 @@
     </clickhouse_remote_servers>
 
     <!-- ZK  -->
-    <zookeeper-servers>
-    </zookeeper-servers>
+    <zookeeper>
+        <node index="1">
+            <host>zoo1</host>
+            <port>2181</port>
+        </node>
+        <node index="2">
+            <host>zoo2</host>
+            <port>2181</port>
+        </node>
+        <node index="3">
+            <host>zoo3</host>
+            <port>2181</port>
+        </node>
+    </zookeeper>
+    
+    <networks>
+        <ip>::/0</ip>
+    </networks>
 
     <!-- 数据压缩算法  -->
     <clickhouse_compression>
         <case>
-          <min_part_size>10000000000</min_part_size>
-          <min_part_size_ratio>0.01</min_part_size_ratio>
-          <method>lz4</method>
+            <min_part_size>10000000000</min_part_size>
+            <min_part_size_ratio>0.01</min_part_size_ratio>
+            <method>lz4</method>
         </case>
     </clickhouse_compression>
 </yandex>

@@ -169,7 +169,7 @@
 
          See https://clickhouse.yandex/docs/en/table_engines/replication/
       -->
-    <zookeeper incl="zookeeper-servers" optional="true" />
+    <zookeeper incl="zookeeper-servers" />
 
     <!-- Substitutions for parameters of replicated tables.
           Optional. If you don't use replicated tables, you could omit that.
