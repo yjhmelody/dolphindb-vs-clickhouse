@@ -1,0 +1,273 @@
+// ---------------多节点并发测试-------------------------
+
+login(`admin, `123456)
+
+// ----------------- 参数
+taq_path = '/mnt/data/TAQ/'
+sample_taq_path = taq_path + 'TAQ20070801.csv'
+db_path = 'dfs://TAQ'
+table_name = `taq
+tb_schema = extractTextSchema(sample_taq_path)
+schema = table(lower(tb_schema.name) as name, tb_schema.type)
+print(schema)
+
+
+// ----------------- 创建 schema
+// 将列名调整为小写避免与 DolphinDB 内置的 SYMBOL, DATE, TIME 等保留关键字产生冲突
+tb_schema = extractTextSchema(sample_taq_path)
+schema = table(lower(tb_schema.name) as name, tb_schema.type)
+
+// 加载 sample table, 用第一个 CSV 中的股票代码频率作为分区范围的依据
+sample_tb = ploadText(sample_taq_path,   , schema)
+sample_freq_tb = select count(*) from sample_tb group by symbol
+print(sample_freq_tb)
+sample_tb = NULL
+
+// 8369 rows, [symbol, count], 分到 100 个 buckets
+BIN_NUM = 100
+
+buckets = cutPoints(sample_freq_tb.symbol, BIN_NUM, sample_freq_tb.count)
+// [A, ABL, ACU, ..., ZZZ], 101 个边界
+buckets[BIN_NUM] = `ZZZZZZ		// 调整最右边界
+
+
+
+// ----------------- 创建数据库分区
+// 按 date(日期), symbol(股票代码) 进行分区，每天再根据 symbol 分为 100 个分区
+DATE_RANGE = 2007.08.01..2007.09.30
+
+date_schema   = database("", VALUE, DATE_RANGE)
+symbol_schema = database("", RANGE, buckets)
+db = database(db_path, COMPO, [date_schema, symbol_schema])
+db.createPartitionedTable(table(100:0, schema.name, schema.type), table_name, `date`symbol)
+close(db)
+
+
+
+
+// ----------------- 分割文件
+files = taq_path + (exec filename from files(taq_path) order by filename);
+half = size(files) / 2;
+files_1 = files[:half]
+files_2 = files[half:]
+print("files1: ", files_1)
+print("files2: ", files_2)
+
+
+
+// --------------------- 导入数据
+def loadCSV(db_path, files) {
+	db = database(db_path)
+	for (f in files) {
+			print(f)
+			if(endsWith(f, '.csv') && startsWith(f, '/mnt/data/TAQ/TAQ')) {
+				loadTextEx(db, `taq, `date`symbol, f)
+			}
+	}
+}
+
+
+taq = db.loadTable(`taq)
+rpc(`node1, submitJob, `node1, "load csv", loadCSV, db_path, files_1);
+rpc(`node2, submitJob, `node2, "load csv", loadCSV, db_path, files_2);
+
+pnodeRun(getRecentJobs)	
+// notes: read ~100MB  write 10~30MB network 8~13MB
+// time: 35 min 30.3 s
+
+
+
+// --------------------- 加载数据库
+login(`admin, `123456)
+
+db_path = 'dfs://TAQ'
+db = database(db_path)
+taq = db.loadTable(`taq)
+
+
+
+// ------------------------ 查询性能测试 --------------------------------------
+pnodeRun(clearAllCache);
+
+
+// --- 窗口函数查询：查询某种股票时间的差值（s)
+timer
+select top 10000 symbol, time, deltas(time) as time_diff from taq
+where
+
+	date == 2007.08.07
+order by time asc
+
+
+
+// 查询总记录数
+timer
+select count(*) from taq
+// times: 104.845 ms  109.113 ms  104.539 ms
+// 连续查询 102.609 ms  93.695 ms  84.633 ms
+// 内存 0.3 0.3
+
+
+
+// 1. 点查询：按股票代码、时间查询
+timer
+select * from taq
+where
+	symbol = 'IBM', 
+	date == 2007.08.07
+// times: 116.748 ms  149.129 ms  165.471 ms
+// 连续查询 10.742 ms  11.612 ms  7.174 ms
+// 内存 136.3 0.3
+
+
+
+// 2. 范围查询：查询某时间段内的某些股票的所有记录
+timer 
+select symbol, time, bid, ofr from taq 
+where
+	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),
+	date between 2007.08.03 : 2007.08.07,
+	time between 09:30:00 : 09:40:00,
+	bid > 20
+
+// times: 182.99 ms  210.585 ms  208.487 ms
+// 连续查询 67.443 ms  65.755 ms  66.841 ms
+// 内存 744.3  264.3
+
+
+
+// 3. top 1000 + 排序: 按 [股票代码、日期] 过滤，按 [卖出与买入价格差] 降序 排序
+timer 
+select top 1000 * from taq 
+where
+	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),
+	date == 2007.08.07,
+	time >= 07:36:37,
+	ofr > bid
+order by (ofr - bid) desc
+// times: 173.155 ms  199.938 ms  187.943 ms
+// 连续查询 27.077 ms  22.249 ms  28.478 ms
+// 内存 588.3 0.3
+
+
+
+// 4. 聚合查询. 单分区维度
+timer 
+select max(bid) as max_bid, min(ofr) as min_ofr from taq
+where 
+	date == 2007.08.02,
+	symbol == 'IBM',
+	ofr > bid
+group by minute(time)
+// times: 45.3 ms  101.986 ms  74.189 ms
+// 连续查询 16.361 ms  32.176 ms  12.529 ms
+// 内存 0.3 72.3 MB
+
+
+
+// 5. 聚合查询.多分区维度 + 排序
+timer
+select 
+	std(bid) 	as std_bid,
+	sum(bidsiz) as sum_bidsiz 
+from taq 
+where 
+	date == 2007.08.07,
+	time between 09:00:00 : 21:00:00,
+	symbol in `IBM`MSFT`GOOG`YHOO,
+	bid >= 20,
+	ofr > 20
+group by symbol, minute(time) 
+order by symbol asc, minute_time asc
+// times: 136.7 ms  166.143 m  157.184 ms
+// 连续查询 46.203 ms  45.151 ms  45.131 ms
+// 内存 364.3  0.3
+
+
+
+// 6. 经典查询：按 [多个股票代码、日期，时间范围、报价范围] 过滤，查询 [股票代码、时间、买入价、卖出价]
+timer
+select symbol, time, bid, ofr from taq
+where
+	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'), 
+	date = 2007.08.03, 
+	time between 09:30:00 : 14:30:00, 
+	bid > 0, 
+	ofr > bid
+// times: 1476.851 ms  1505.925 ms  1546.055 ms
+// 连续查询 1429.415 ms  1463.056 ms  1424.289 ms
+// 内存 168.3  168.3
+
+
+
+// 7. 经典查询：按 [日期、时间范围、卖出买入价格条件、股票代码] 过滤，查询 (各个股票 每分钟) [平均变化幅度]
+timer
+select avg( (ofr - bid) / (ofr + bid) ) * 2 as spread 
+from taq 
+where 
+	date = 2007.08.01,
+	time between 09:30:00 : 16:00:00,
+	bid > 0,
+	ofr > bid
+group by symbol, minute(time) as minute
+// times: 6579.806 ms  6561.861 ms  6793.162 ms
+// 连续查询 6143.717 ms 5999.691 ms  6455.538 ms
+// 内存 1,537.6  1,423.1
+
+
+
+// 8. 经典查询：计算 某天 (每个股票 每分钟) 最大卖出与最小买入价之差
+timer
+select max(ofr) - min(bid) as gap 
+from taq 
+where 
+	date = 2007.08.03, 
+	bid > 0, 
+	ofr > bid
+group by symbol, minute(time) as minute
+// times: 4413.58 ms  4313.455 ms  4344.721 ms
+// 连续查询 4057.016 ms 4058.613 ms 4145.638 ms
+// 内存 	5,040.6  3,888.5 
+
+
+
+// 9. 经典查询：按 [股票代码、日期段、时间段] 过滤, 查询 (每天，时间段内每分钟) 均价
+timer
+select avg(ofr + bid) / 2.0 as avg_price
+from taq 
+where 
+	symbol = 'IBM', 
+	date between 2007.08.01 : 2007.08.07,
+	time between 09:30:00 : 16:00:00
+group by date, minute(time) as minute
+// times: 146.258 ms 133.078 ms  177.921 ms
+// 连续查询 28.464 ms  23.873 ms  24.132 ms
+// 内存 196.3 308.3 
+
+
+
+// 10. 经典查询：按 [日期段、时间段] 过滤, 查询 (每股票，每天) 均价
+timer
+select avg(ofr + bid) / 2.0 as avg_price
+from taq 
+where
+	date between 2007.08.05 : 2007.08.07,
+	time between 09:30:00 : 16:00:00
+group by symbol, date
+// times: 11138.148 ms  3845.77 ms  3991.298 ms
+// 连续查询 1961.145 ms  2068.212 ms  1993.328 ms
+// 内存 8,962.8  11,900.9
+
+
+
+// 11. 经典查询：计算 某个日期段 有成交记录的 (每天, 每股票) 加权均价，并按 (日期，股票代码) 排序
+timer
+select wavg(bid, bidsiz) as vwab 
+from taq
+where date between 2007.08.05 : 2007.08.06
+group by date, symbol
+	having sum(bidsiz) > 0
+order by date desc, symbol
+// times: 2664.635 ms  1357.005 ms 1465.089 ms
+// 连续查询 676.901 ms  630.876 ms  632.98 ms
+// 内存 3,322.5  4,240.6
