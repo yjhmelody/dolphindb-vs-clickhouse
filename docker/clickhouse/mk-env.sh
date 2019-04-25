@@ -8,5 +8,5 @@ for i in 0 1 2 3 4 5 6 7; do
 done;
 
 sudo mkdir -p /hdd/etc/clickhouse-server && \
-sudo cp env/config/* /hdd/etc/clickhouse-server/ && \
-sudo cp env/config/metrika.xml /hdd/etc/metrika.xml
+sudo cp -r env/config/* /hdd/etc/clickhouse-server/ && \
+sudo cp -r env/config/metrika.xml /hdd/etc/metrika.xml
