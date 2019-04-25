@@ -46,6 +46,8 @@ close(db)
 
 
 // ----------------- 分割文件
+
+taq_path = '/hdd/hdd1/data/'
 files = taq_path + (exec filename from files(taq_path) order by filename);
 half = size(files) / 2;
 files_1 = files[:half]
@@ -59,10 +61,7 @@ print("files2: ", files_2)
 def loadCSV(db_path, files) {
 	db = database(db_path)
 	for (f in files) {
-			print(f)
-			if(endsWith(f, '.csv') && startsWith(f, '/mnt/data/TAQ/TAQ')) {
-				loadTextEx(db, `taq, `date`symbol, f)
-			}
+		loadTextEx(db, `taq, `date`symbol, f)
 	}
 }
 
@@ -70,6 +69,10 @@ def loadCSV(db_path, files) {
 taq = db.loadTable(`taq)
 rpc(`node1, submitJob, `node1, "load csv", loadCSV, db_path, files_1);
 rpc(`node2, submitJob, `node2, "load csv", loadCSV, db_path, files_2);
+rpc(`node3, submitJob, `node3, "load csv", loadCSV, db_path, files_3);
+rpc(`node4, submitJob, `node4, "load csv", loadCSV, db_path, files_4);
+rpc(`node5, submitJob, `node5, "load csv", loadCSV, db_path, files_5);
+rpc(`node6, submitJob, `node6, "load csv", loadCSV, db_path, files_6);
 
 pnodeRun(getRecentJobs)	
 // notes: read ~100MB  write 10~30MB network 8~13MB
