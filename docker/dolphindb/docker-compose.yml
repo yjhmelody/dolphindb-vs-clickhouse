@@ -1,9 +1,10 @@
 version: '3'
 
 services:
-  ddbcontroller:
+  controller:
     image: ddb:latest
-    container_name: ddbcontroller
+    container_name: controller
+    hostname: controller
     environment:
       - DEPLOY_MODE=controller
     ulimits:
@@ -27,9 +28,10 @@ services:
       dbnet:
         ipv4_address: 10.5.0.100
 
-  ddbagent1:
+  agent1:
     image: ddb:latest
-    container_name: ddbagent1
+    container_name: agent1
+    hostname: agent1
     environment:
       - DEPLOY_MODE=agent
     ulimits:
@@ -51,9 +53,10 @@ services:
       dbnet:
         ipv4_address: 10.5.0.2
 
-  ddbagent2:
+  agent2:
     image: ddb:latest
-    container_name: ddbagent2
+    container_name: agent2
+    hostname: agent2
     environment:
       - DEPLOY_MODE=agent
     ulimits:
@@ -76,9 +79,10 @@ services:
       dbnet:
         ipv4_address: 10.5.0.3
 
-  ddbagent3:
+  agent3:
     image: ddb:latest
-    container_name: ddbagent3
+    container_name: agent3
+    hostname: agent3
     environment:
       - DEPLOY_MODE=agent
     ulimits:
@@ -99,9 +103,10 @@ services:
       dbnet:
         ipv4_address: 10.5.0.4
 
-  ddbagent4:
+  agent4:
     image: ddb:latest
-    container_name: ddbagent4
+    container_name: agent4
+    hostname: agent4
     environment:
       - DEPLOY_MODE=agent
     ulimits:
@@ -122,9 +127,10 @@ services:
       dbnet:
         ipv4_address: 10.5.0.5
 
-  ddbagent5:
+  agent5:
     image: ddb:latest
-    container_name: ddbagent5
+    container_name: agent5
+    hostname: agent5
     environment:
       - DEPLOY_MODE=agent
     ulimits:
@@ -145,9 +151,10 @@ services:
       dbnet:
         ipv4_address: 10.5.0.6
 
-  ddbagent6:
+  agent6:
     image: ddb:latest
-    container_name: ddbagent6
+    container_name: agent6
+    hostname: agent6
     environment:
       - DEPLOY_MODE=agent
     ulimits:

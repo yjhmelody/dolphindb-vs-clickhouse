@@ -11,6 +11,7 @@ services:
     node1:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node1
+        hostname: node1
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml            
             # 这个注释了就能跑通，但是找不到原因
@@ -34,6 +35,7 @@ services:
     node2:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node2
+        hostname: node2
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
             - /hdd/hdd2/clickhouse:/var/lib/clickhouse
@@ -54,6 +56,7 @@ services:
     node3:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node3
+        hostname: node3
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
             - /hdd/hdd3/clickhouse:/var/lib/clickhouse
@@ -75,6 +78,7 @@ services:
     node4:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node4
+        hostname: node4
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
             - /hdd/hdd4/clickhouse:/var/lib/clickhouse
@@ -95,6 +99,7 @@ services:
     node5:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node5
+        hostname: node5
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
             - /hdd/hdd5/clickhouse:/var/lib/clickhouse
@@ -115,6 +120,7 @@ services:
     node6:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node6
+        hostname: node6
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
             - /hdd/hdd6/clickhouse:/var/lib/clickhouse
@@ -135,6 +141,7 @@ services:
     node7:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node7
+        hostname: node7
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
             - /hdd/hdd7/clickhouse:/var/lib/clickhouse
@@ -155,6 +162,7 @@ services:
     node8:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node8
+        hostname: node8
         volumes: 
             - /hdd/etc/metrika.xml:/etc/metrika.xml
             - /hdd/hdd8/clickhouse:/var/lib/clickhouse
