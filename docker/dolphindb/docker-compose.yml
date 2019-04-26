@@ -54,6 +54,8 @@ services:
       - ./cluster/server1/P1-node1:/data/ddb/server/P1-node1
       - ./config/agent1.cfg:/data/ddb/server/config/agent.cfg
       - /hdd/hdd1/data:/data2
+    ports: 
+      - "19030:19001"
     networks:
       dbnet:
         ipv4_address: 10.5.0.2
