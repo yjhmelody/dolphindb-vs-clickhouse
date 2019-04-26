@@ -9,3 +9,6 @@ dolphindb.lic
 *.crt
 *.meta
 *.0
+*.msg
+domain
+*.obj

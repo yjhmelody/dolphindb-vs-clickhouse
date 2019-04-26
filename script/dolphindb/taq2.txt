@@ -3,7 +3,7 @@
 login(`admin, `123456)
 
 // ----------------- 参数
-taq_path = '/mnt/data/TAQ/'
+taq_path = '/data2/TAQ/'
 sample_taq_path = taq_path + 'TAQ20070801.csv'
 db_path = 'dfs://TAQ'
 table_name = `taq
@@ -43,36 +43,25 @@ db.createPartitionedTable(table(100:0, schema.name, schema.type), table_name, `d
 close(db)
 
 
-
-
-// ----------------- 分割文件
-
-taq_path = '/hdd/hdd1/data/'
-files = taq_path + (exec filename from files(taq_path) order by filename);
-half = size(files) / 2;
-files_1 = files[:half]
-files_2 = files[half:]
-print("files1: ", files_1)
-print("files2: ", files_2)
-
-
-
 // --------------------- 导入数据
-def loadCSV(db_path, files) {
+db_path = 'dfs://TAQ'
+
+def loadCSV(db_path) {
+	taq_path = '/data2/'
+	files = taq_path + (exec filename from files(taq_path) order by filename);
 	db = database(db_path)
 	for (f in files) {
 		loadTextEx(db, `taq, `date`symbol, f)
 	}
 }
 
-
-taq = db.loadTable(`taq)
-rpc(`node1, submitJob, `node1, "load csv", loadCSV, db_path, files_1);
-rpc(`node2, submitJob, `node2, "load csv", loadCSV, db_path, files_2);
-rpc(`node3, submitJob, `node3, "load csv", loadCSV, db_path, files_3);
-rpc(`node4, submitJob, `node4, "load csv", loadCSV, db_path, files_4);
-rpc(`node5, submitJob, `node5, "load csv", loadCSV, db_path, files_5);
-rpc(`node6, submitJob, `node6, "load csv", loadCSV, db_path, files_6);
+rpc("P1-node1", submitJob, `node1, "load csv", loadCSV, db_path);
+rpc("P2-node1", submitJob, `node2, "load csv", loadCSV, db_path);
+rpc("P3-node1", submitJob, `node3, "load csv", loadCSV, db_path);
+rpc("P4-node1", submitJob, `node4, "load csv", loadCSV, db_path);
+rpc("P5-node1", submitJob, `node5, "load csv", loadCSV, db_path);
+rpc("P6-node1", submitJob, `node6, "load csv", loadCSV, db_path);
+rpc("P7-node1", submitJob, `node7, "load csv", loadCSV, db_path);
 
 pnodeRun(getRecentJobs)	
 // notes: read ~100MB  write 10~30MB network 8~13MB

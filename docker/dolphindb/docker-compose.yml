@@ -5,7 +5,7 @@ networks:
     driver: bridge
     ipam:
       config:
-       - subnet: 10.6.0.0/16
+       - subnet: 10.5.0.0/16
 
 services:
   controller:
@@ -33,7 +33,7 @@ services:
       - "9999:8888"
     networks:
       dbnet:
-        ipv4_address: 10.6.0.100
+        ipv4_address: 10.5.0.100
 
   agent1:
     image: ddb:latest
@@ -57,7 +57,7 @@ services:
       - /hdd/hdd1/data:/data2
     networks:
       dbnet:
-        ipv4_address: 10.6.0.2
+        ipv4_address: 10.5.0.2
 
   agent2:
     image: ddb:latest
@@ -82,7 +82,7 @@ services:
       - /hdd/hdd2/data:/data2
     networks:
       dbnet:
-        ipv4_address: 10.6.0.3
+        ipv4_address: 10.5.0.3
 
   agent3:
     image: ddb:latest
@@ -106,7 +106,7 @@ services:
       - /hdd/hdd3/data:/data2
     networks:
       dbnet:
-        ipv4_address: 10.6.0.4
+        ipv4_address: 10.5.0.4
 
   agent4:
     image: ddb:latest
@@ -130,7 +130,7 @@ services:
       - /hdd/hdd4/data:/data2
     networks:
       dbnet:
-        ipv4_address: 10.6.0.5
+        ipv4_address: 10.5.0.5
 
   agent5:
     image: ddb:latest
@@ -154,7 +154,7 @@ services:
       - /hdd/hdd5/data:/data2
     networks:
       dbnet:
-        ipv4_address: 10.6.0.6
+        ipv4_address: 10.5.0.6
 
   agent6:
     image: ddb:latest
@@ -178,7 +178,7 @@ services:
       - /hdd/hdd6/data:/data2
     networks:
       dbnet:
-        ipv4_address: 10.6.0.7
+        ipv4_address: 10.5.0.7
 
   agent7:
     image: ddb:latest
@@ -202,5 +202,5 @@ services:
       - /hdd/hdd7/data:/data2
     networks:
       dbnet:
-        ipv4_address: 10.6.0.8
+        ipv4_address: 10.5.0.8
 

@@ -25,12 +25,3 @@ ps -ef | grep dolphindb >> /data/ddb/server/log/run.log
 
 # keep alive
 sleep infinity
-
-# have to map the following Volumes
-# /data/ddb/server/log
-# /data/ddb/server/master
-# /data/ddb/server/P1-agent
-# /data/ddb/server/P1-node1
-# /data/ddb/server/P1-node2
-# ...
-# file

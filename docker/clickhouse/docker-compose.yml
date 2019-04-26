@@ -8,6 +8,28 @@ networks:
        - subnet: 10.5.0.0/16
 
 services: 
+    client1:
+        image: yjhmelody/clickhouse-client:latest
+        container_name: client1
+        hostname: client1
+        volumes: 
+            - /hdd/hdd1/data:/hdd/hdd1/data
+            - /hdd/hdd2/data:/hdd/hdd2/data
+            - /hdd/hdd3/data:/hdd/hdd3/data
+            - /hdd/hdd4/data:/hdd/hdd4/data
+            - /hdd/hdd5/data:/hdd/hdd5/data
+            - /hdd/hdd6/data:/hdd/hdd6/data
+            - /hdd/hdd7/data:/hdd/hdd7/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.100
     node1:
         image: yandex/clickhouse-server:19.4.4.33
         container_name: node1
