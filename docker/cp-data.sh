@@ -2,8 +2,8 @@
 
 # 磁盘并行读写，所以必须拷贝
 
-TAQ_PATH=/hdd/hdd0/data/TAQ
-# TAQ_PATH=/hdd/hdd0/data/NEW_TAQ/
+# TAQ_PATH=/hdd/hdd0/data/TAQ
+TAQ_PATH=/hdd/hdd0/data/NEW_TAQ/
 
 sudo cp ${TAQ_PATH}/TAQ2007080[123678].csv /hdd/hdd1/data/
 
