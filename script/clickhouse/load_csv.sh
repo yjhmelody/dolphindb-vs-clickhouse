@@ -15,7 +15,7 @@ starttime=$(date +%Y-%m-%d\ %H:%M:%S)
 echo $starttime >> time.txt
 
 for filename in ./*.csv; do
-        clickhouse-client --use_client_time_zone true --query="INSERT INTO taq FORMAT CSV" < $filename
+    clickhouse-client --port --use_client_time_zone true --query="INSERT INTO taq FORMAT CSV" < $filename
 done 
 
 echo "end time:" >> time.txt

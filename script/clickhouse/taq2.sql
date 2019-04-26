@@ -34,7 +34,7 @@ SETTINGS index_granularity=8192;
 
 
 -- 创建分布式表
-CREATE TABLE taq AS taq_local
+CREATE TABLE IF NOT EXISTS taq AS taq_local
 ENGINE = Distributed(cluster_8shard_1replicas, default, taq_local, rand());
 
 INSERT INTO taq_local VALUES ('A', '2007-08-01', '2007-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
@@ -45,15 +45,16 @@ SELECT * FROM taq ORDER BY time ASC;
 
 
 
+--- 查看内存占用
+select value / 1024 / 1024 / 1024 from system.metrics
+where metric = 'MemoryTracking';
+
 
 --------------------------------- 查询 ------------------------------------------
 SELECT count(*) FROM taq;
 -- 23s 546ms  后面总是有缓存
 -- 连续查询 455ms 461ms 462ms
 
---- 查看内存占用
-select value / 1024 / 1024 / 1024 from system.metrics
-where metric = 'MemoryTracking';
 
 
 --- 窗口函数查询：查询某种股票时间的差值（s)
