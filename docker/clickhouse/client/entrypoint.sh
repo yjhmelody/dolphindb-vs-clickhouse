@@ -19,12 +19,11 @@ sleep infinity
 
 # sudo docker run -it yandex/clickhouse-client --use_client_time_zone true --host $clickhouseip --port 1900$1 --query="INSERT INTO taq FORMAT CSV" < $filename
 
-# sudo docker run -d -v /hdd/hdd1/data/:/hdd/hdd1/data/ \
-# yandex/clickhouse-client \
-# --use_client_time_zone true \
-# --host 115.239.209.224 \
-# --port 19001 \
-# --query="INSERT INTO taq FORMAT CSV"  < /hdd/hdd1/data/TAQ20070801.csv
+sudo docker run -it \
+yandex/clickhouse-client \
+--use_client_time_zone true \
+--host 115.239.209.224 \
+--port 19001 \
 
 
 

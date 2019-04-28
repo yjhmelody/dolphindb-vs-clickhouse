@@ -63,8 +63,8 @@ OS：Ubuntu 16.04 LTS -->
 
 ### 导入性能
 
-DolphinDB: 35min 30.3s
-ClickHouse: 47min 53s
+DolphinDB: 
+ClickHouse: 17min 5s
 
 
 ### 查询性能
@@ -79,14 +79,14 @@ ClickHouse: 47min 53s
 7. 经典查询：计算某天 (每个股票 每分钟) 最大卖出与最小买入价之差
 
 
-| 样例        | DolphinDB 用时(第一次查询) | ClickHouse 用时(第一次查询) | DolphinDB 用时(连续查询) | ClickHouse 用时(连续查询) |
-| ----------- | -------------------------- | --------------------------- | ------------------------ | ------------------------- |
-| 0. 查询总数 | 105ms  109ms  105ms        | 23s 546ms                   | 103ms  94ms  85ms        | 455ms  461ms  462ms       |
-| 1. 点查询   | 117ms  149ms  165ms        | 138ms  141ms  147ms         | 11ms  12ms  7ms          | 145ms  144ms  144ms       |
-| 2. 范围查询 | 182ms  211ms  208ms        | 764ms  789ms  767ms         | 67ms  66ms  67ms         | 792ms  802ms  799 ms      |
-| 3. top1000  | 173ms  200ms  188ms        | 55ms  80 ms  42ms           | 27ms  22ms  28ms         | 48ms  41ms  41ms          |
-| 4. 聚合查询 | 45ms  102ms  74ms          | 19ms  26ms  24ms            | 16ms  32ms  13ms         | 22ms  29ms  27ms          |
-| 5. 聚合查询 | 137ms  166m  157ms         | 116ms 118ms  92ms           | 46ms  45ms  45ms         | 87ms  59ms  66ms          |
-| 6. 经典查询 | 1477ms  1506ms  1546ms     | 185ms  177ms  183ms         | 1429ms  1463ms  1424ms   | 194ms  191ms 171ms        |
-| 7. 经典查询 | 4414ms  4313ms             | 23812ms  29471ms            | 4057ms 4059ms 4146ms     | 7608ms  7514ms  7504ms    |
+| 样例        | DolphinDB 用时(第一次查询) | ClickHouse 用时(第一次查询)    | DolphinDB 用时(连续查询) | ClickHouse 用时(连续查询) |
+| ----------- | -------------------------- | ------------------------------ | ------------------------ | ------------------------- |
+| 0. 查询总数 | 105ms  109ms  105ms        | 69s 997ms(14s 900ms 14s 383ms) |                          | 103ms  94ms  85ms         | 1049ms 1149ms 758ms |
+| 1. 点查询   | 117ms  149ms  165ms        | 138ms  141ms  147ms            | 11ms  12ms  7ms          | 145ms  144ms  144ms       |
+| 2. 范围查询 | 182ms  211ms  208ms        | 764ms  789ms  767ms            | 67ms  66ms  67ms         | 792ms  802ms  799 ms      |
+| 3. top1000  | 173ms  200ms  188ms        | 55ms  80 ms  42ms              | 27ms  22ms  28ms         | 48ms  41ms  41ms          |
+| 4. 聚合查询 | 45ms  102ms  74ms          | 19ms  26ms  24ms               | 16ms  32ms  13ms         | 22ms  29ms  27ms          |
+| 5. 聚合查询 | 137ms  166m  157ms         | 116ms 118ms  92ms              | 46ms  45ms  45ms         | 87ms  59ms  66ms          |
+| 6. 经典查询 | 1477ms  1506ms  1546ms     | 185ms  177ms  183ms            | 1429ms  1463ms  1424ms   | 194ms  191ms 171ms        |
+| 7. 经典查询 | 4414ms  4313ms             | 23812ms  29471ms               | 4057ms 4059ms 4146ms     | 7608ms  7514ms  7504ms    |
 

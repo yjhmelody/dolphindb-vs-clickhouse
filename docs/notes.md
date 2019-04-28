@@ -8,6 +8,8 @@ ClickHouse有几核心的配置文件：
 - metrika.xml 集群配置、ZK配置、分片配置等
 - users.xml 权限、配额设置
 
+ClickHouse主要使用向量化查询执行和有限的运行时代码生成支持(仅GROUP BY内部循环第一阶段被编译)。
+
 ## Traps
 
 - metrika.xml 在 /etc/下
@@ -43,3 +45,23 @@ ClickHouse needs ZooKeeper to build cluster
 | mode   | INT                   | Int32               |
 | ex     | CHAR                  | Int8                |
 | mmid   | SYMBOL                | String              |
+
+
+## 清理缓存
+
+清除页面缓存（PageCache）
+
+```
+sync; echo 1 > /proc/sys/vm/drop_caches       
+```
+
+清理目录项和inode
+
+```
+sync; echo 2 > /proc/sys/vm/drop_caches
+```
+
+清除页面缓存，目录项和inode
+
+sync; echo 3 > /proc/sys/vm/drop_caches 
+```

@@ -164,7 +164,7 @@ WHERE
 	AND bid >= 20
 	AND ofr > 20
 GROUP BY symbol, toStartOfMinute(time) AS minute_time
-ORDER BY symbol ASC , minute_time ASC
+ORDER BY 26.899symbol ASC , minute_time ASC
 ;
 
 ------ or
