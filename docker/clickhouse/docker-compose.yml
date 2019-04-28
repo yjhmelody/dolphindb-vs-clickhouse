@@ -181,27 +181,7 @@ services:
         networks: 
             dbnet:
                 ipv4_address: 10.5.0.8
-    node8:
-        image: yandex/clickhouse-server:19.4.4.33
-        container_name: node8
-        hostname: node8
-        volumes: 
-            - /hdd/etc/metrika.xml:/etc/metrika.xml
-            - /hdd/hdd8/clickhouse:/var/lib/clickhouse
-            - /hdd/hdd8/clickhouse/log:/var/log/clickhouse-server
-            - /hdd/hdd8/data:/data
-        ulimits: 
-            memlock:
-                soft: -1
-                hard: -1
-            nofile:
-                soft: 65536
-                hard: 65536
-        ports:
-            - "19008:9000"
-        networks: 
-            dbnet:
-                ipv4_address: 10.5.0.9
+  
     # zoo1:
     #     image: zookeeper:3.4.14
     #     restart: always

@@ -68,7 +68,7 @@ SELECT * FROM taq WHERE symbol = 'IBM' AND date = '2007-08-07';
 -- 2. 范围查询：查询某时间段内的某些股票的所有记录
 SELECT symbol, time, bid, ofr FROM taq WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND toDate(time) BETWEEN '2007-08-03' AND '2007-08-07' AND bid > 20
 ;
---- or 
+----- or 
 SELECT symbol, time, bid, ofr FROM taq
 WHERE
 	symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO')
@@ -139,10 +139,7 @@ SELECT symbol, time, bid, ofr FROM taq where symbol IN ('IBM', 'MSFT', 'GOOG', '
 -- 8. 经典查询：计算某天 (每个股票 每分钟) 最大卖出与最小买入价之差
 SELECT max(ofr) - min(bid) AS gap FROM taq WHERE toDate(time) IN toDate('2007-08-03') AND bid > 0 AND ofr > bid GROUP BY symbol, toStartOfMinute(time) AS minute
 ;
-
--- 199.022s
 ----- or
-
 SELECT max(ofr) - min(bid) AS gap
 FROM taq
 WHERE
@@ -153,6 +150,7 @@ GROUP BY symbol, toStartOfMinute(time) AS minute
 ;
 -- times: 26ms 899ms   26s 597ms   25s 920ms
 -- 连续查询  7.736s 7.420s 8.156s
+
 
 
 
