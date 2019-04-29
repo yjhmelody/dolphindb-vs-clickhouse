@@ -46,6 +46,8 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    ports:
+      - "19001:19001
     volumes:
       - /hdd/hdd1/dolphindb/server1/log:/data/ddb/server/log
       - /hdd/hdd1/dolphindb/server1/P1-agent:/data/ddb/server/P1-agent
