@@ -11,7 +11,7 @@ for i in 1 2 3 4 5 6 7; do
         --use_client_time_zone true \
         --host 10.5.0.$((${i} + 1)) \
         --port 9000 \
-        --query="INSERT INTO taq3 FORMAT CSV"  < $file &
+        --query="INSERT INTO taq5 FORMAT CSV"  < $file &
     done;
 done;
 

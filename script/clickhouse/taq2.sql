@@ -99,6 +99,31 @@ SETTINGS index_granularity=8192;
 CREATE TABLE IF NOT EXISTS taq4 AS taq_local4
 ENGINE = Distributed(cluster_7shard_1replicas, default, taq_local4, toYYYYMMDD(time));
 
+
+-------------------------- 第五种分区---------------------------------
+
+DROP TABLE IF EXISTS taq_local5;
+DROP TABLE IF EXISTS taq5;
+
+CREATE TABLE IF NOT EXISTS taq_local5 (
+    symbol String,
+    date Date,
+    time DateTime,
+    bid Float64,
+    ofr Float64,
+    bidSiz Int32,
+    ofrsiz Int32,
+    mode Int32,
+    ex FixedString(1),
+    mmid Nullable(String)
+) ENGINE = MergeTree()
+PARTITION BY toYYYYMMDD(time)
+ORDER BY symbol
+SETTINGS index_granularity=8192;
+
+CREATE TABLE IF NOT EXISTS taq5 AS taq_local5
+ENGINE = Distributed(cluster_7shard_1replicas, default, taq_local5, toYYYYMMDD(time));
+
 ------------------------------------------------------------------------
 
 INSERT INTO taq_local VALUES ('A', '2007-08-01', '2007-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);
@@ -133,6 +158,10 @@ SELECT count(*) FROM taq4;
 -- 一次: 13.955s 14.127s 13.386s
 -- 连续 641ms 638ms 634ms
 
+SELECT count(*) FROM taq5;
+-- 一次: 14.674s 13.743s 16.689s
+-- 连续 661ms 649ms 646ms
+
 
 -- ok
 -- 1. 点查询：按股票代码、时间查询
@@ -151,6 +180,11 @@ SELECT * FROM taq3 WHERE symbol = 'IBM' AND toDate(time) = '2007-09-07';
 SELECT * FROM taq4 WHERE symbol = 'IBM' AND toDate(time) = '2007-09-07';
 -- 一次: 482ms 443ms 531ms
 -- 连续  210ms 170ms 215ms
+
+SELECT * FROM taq5 WHERE symbol = 'IBM' AND toDate(time) = '2007-09-07';
+-- 一次: 810ms 625ms 677ms
+-- 连续  198ms 193ms 195ms
+
 
 
 --- ok
@@ -171,6 +205,10 @@ SELECT symbol, time, bid, ofr FROM taq4 WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 
 -- 一次: 988ms 893ms 817ms
 -- 连续 364ms 341ms 360ms
 
+SELECT symbol, time, bid, ofr FROM taq5 WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND toDate(time) BETWEEN '2007-08-03' AND '2007-08-07' AND bid > 20
+-- 一次: 868ms 976ms 1061ms
+-- 连续 354ms 366ms 433ms
+
 
 -- ok
 -- 3. top 1000 + 排序: 按 [股票代码、日期] 过滤，按 [卖出与买入价格差] 降序 排序
@@ -190,6 +228,11 @@ SELECT * FROM taq4 WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND time >= t
 -- 一次: 1.132s 1.254s 1.124s
 -- 连续 120ms 140ms 121ms
 
+SELECT * FROM taq5 WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND time >= toDateTime('2007-08-07 07:36:37') AND time < toDateTime('2007-08-08 00:00:00') AND ofr > bid ORDER BY (ofr - bid) DESC LIMIT 1000
+-- 一次: 956ms 640ms 808ms
+-- 连续 94ms 98ms 98ms
+
+
 
 -- ok
 -- 4. 聚合查询. 单分区维度
@@ -208,6 +251,10 @@ SELECT max(bid) as max_bid, min(ofr) AS min_ofr FROM taq3 WHERE toDate(time) = '
 SELECT max(bid) as max_bid, min(ofr) AS min_ofr FROM taq4 WHERE toDate(time) = '2007-08-02' AND symbol = 'IBM' AND ofr > bid GROUP BY toStartOfMinute(time)
 -- 一次: 230ms 253ms 293ms
 -- 连续 31ms 35ms 36ms
+
+SELECT max(bid) as max_bid, min(ofr) AS min_ofr FROM taq5 WHERE toDate(time) = '2007-08-02' AND symbol = 'IBM' AND ofr > bid GROUP BY toStartOfMinute(time)
+-- 一次: 135ms 126ms 189ms
+-- 连续 37ms 45ms 43ms
 
 
 
@@ -229,7 +276,13 @@ SELECT stddevPop(bid) AS std_bid, sum(bidSiz) AS sum_bidsiz FROM taq4 WHERE time
 -- 一次: 773ms 767ms 742ms
 -- 连续 116ms 145ms 189ms
 
+SELECT stddevPop(bid) AS std_bid, sum(bidSiz) AS sum_bidsiz FROM taq5 WHERE time BETWEEN toDateTime('2007-09-10 09:00:00')  AND toDateTime('2007-09-11 21:00:00') AND symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND bid >= 20 AND ofr > 20 GROUP BY symbol, toStartOfMinute(time) AS minute_time ORDER BY symbol ASC , minute_time ASC
+-- 一次: 545ms 509ms 450ms
+-- 连续  115ms 127ms 104ms
 
+
+
+SELECT max(ofr) - min(bid) AS gap FROM taq5 WHERE toDate(time) IN '2007-08-01' AND bid > 0 AND ofr > bid GROUP BY symbol, toStartOfMinute(time) AS minute
 -- ok
 -- 6. 经典查询：按 [多个股票代码、日期，时间范围、报价范围] 过滤，查询 [股票代码、时间、买入价、卖出价]
 SELECT symbol, time, bid, ofr FROM taq where symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND time BETWEEN toDateTime('2007-08-03 09:30:00') AND toDateTime('2007-08-03 14:30:00') AND bid > 0 AND ofr > bid
@@ -248,6 +301,10 @@ SELECT symbol, time, bid, ofr FROM taq4 where symbol IN ('IBM', 'MSFT', 'GOOG', 
 -- 一次: 630ms 616ms 671ms
 -- 连续 221ms 207ms 243ms
 
+SELECT symbol, time, bid, ofr FROM taq5 where symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND time BETWEEN toDateTime('2007-08-03 09:30:00') AND toDateTime('2007-08-03 14:30:00') AND bid > 0 AND ofr > bid
+-- 一次: 337ms 206ms 280ms
+-- 连续  220ms 220ms 227ms
+
 
 
 -- ok
@@ -265,9 +322,12 @@ SELECT symbol, time, runningDifference(time) AS time_diff FROM taq3 WHERE symbol
 -- 连续  215ms 217ms 198ms
 
 SELECT symbol, time, runningDifference(time) AS time_diff FROM taq4 WHERE symbol = 'YHOO' AND date = '2007-09-04' ORDER BY time ASC
--- 一次: 596ms 696ms 641ms
+-- 一次: 705ms 696ms 641ms
 -- 连续 209ms 263ms 253ms
 
+SELECT symbol, time, runningDifference(time) AS time_diff FROM taq5 WHERE symbol = 'YHOO' AND date = '2007-09-04' ORDER BY time ASC
+-- 一次: 733ms 511ms 834ms
+-- 连续 209ms 196ms 209ms
 
 
 -- 8. 经典查询：计算某天 (每个股票 每分钟) 最大卖出与最小买入价之差
@@ -287,6 +347,19 @@ SELECT max(ofr) - min(bid) AS gap FROM taq4 WHERE toDate(time) IN '2007-08-01' A
 -- 一次: 34.976s 33.037s 32.784s
 -- 连续 4.910s 4.784s 4.669s
 
+SELECT max(ofr) - min(bid) AS gap FROM taq5 WHERE toDate(time) IN '2007-08-01' AND bid > 0 AND ofr > bid GROUP BY symbol, toStartOfMinute(time) AS minute
+-- 一次: 22.295s 22.966s 24.186s
+-- 连续 4.500s 4.472s 4.465s
+
+
+-- 9. median 函数查询, 拿到所有股票数据后计算
+SELECT median(ofr), median(bid) FROM taq4 WHERE date = '2007-08-10' AND symbol = 'IBM'
+-- 一次: 334ms 313ms 308ms
+-- 连续 33ms 35ms 34ms
+
+SELECT median(ofr), median(bid) FROM taq5 WHERE date = '2007-08-10' AND symbol = 'IBM'
+-- 一次: 378ms 205ms 387ms
+-- 连续 45ms 43ms 43ms
 
 
 --------------------------------------- 下面逻辑需要改写 -----------------------------------------

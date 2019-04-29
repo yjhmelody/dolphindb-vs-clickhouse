@@ -34,3 +34,4 @@ RUN rm -rf /data/ddb/server/${zlib_version}
 RUN rm -rf /data/ddb/server/${awss3_version}
 
 ENTRYPOINT ["/root/entrypoint.sh"]
+#CMD ["/bin/bash"]

@@ -1,6 +1,7 @@
 localSite,mode
 agent1:19000:P1-agent,agent
 agent1:19001:P1-node1,datanode
+
 agent2:19000:P2-agent,agent
 agent2:19001:P2-node1,datanode
 agent3:19000:P3-agent,agent

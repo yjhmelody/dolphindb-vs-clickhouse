@@ -23,5 +23,7 @@ fi
 # ps job
 ps -ef | grep dolphindb >> /data/ddb/server/log/run.log
 
+
 # keep alive
 sleep infinity
+#$@
