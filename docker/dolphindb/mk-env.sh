@@ -5,5 +5,5 @@ for i in 1 2 3 4 5 6 7; do
     echo $i
     sudo mkdir -p /hdd/hdd${i}/dolphindb/data/ddb/server/log
     sudo mkdir -p /hdd/hdd${i}/dolphindb/data/ddb/server/config
-    sudo mkdir -p /hdd/hdd${i}/data/TAQ
+    sudo mkdir -p /hdd/hdd${i}/data2/TAQ
 done;

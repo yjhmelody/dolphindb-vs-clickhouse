@@ -27,7 +27,7 @@ services:
       - ./config/controller.cfg:/data/ddb/server/config/controller.cfg
       - ./config/cluster.cfg:/data/ddb/server/config/cluster.cfg
       - ./config/cluster.nodes:/data/ddb/server/config/cluster.nodes
-      - /hdd/hdd1/data:/data2
+      - /hdd/hdd1/data2:/data2
     ports:
       - "9999:8888"
     networks:
@@ -53,7 +53,7 @@ services:
       - ./cluster/server1/P1-agent:/data/ddb/server/P1-agent
       - ./cluster/server1/P1-node1:/data/ddb/server/P1-node1
       - ./config/agent1.cfg:/data/ddb/server/config/agent.cfg
-      - /hdd/hdd1/data:/data2
+      - /hdd/hdd1/data2:/data2
     ports: 
       - "19030:19001"
     networks:
@@ -80,7 +80,7 @@ services:
       - ./cluster/server2/P2-agent:/data/ddb/server/P2-agent
       - ./cluster/server2/P2-node1:/data/ddb/server/P2-node1
       - ./config/agent2.cfg:/data/ddb/server/config/agent.cfg
-      - /hdd/hdd2/data:/data2
+      - /hdd/hdd2/data2:/data2
     networks:
       dbnet:
         ipv4_address: 10.5.0.3
@@ -104,7 +104,7 @@ services:
       - ./cluster/server3/P3-agent:/data/ddb/server/P3-agent
       - ./cluster/server3/P3-node1:/data/ddb/server/P3-node1
       - ./config/agent3.cfg:/data/ddb/server/config/agent.cfg
-      - /hdd/hdd3/data:/data2
+      - /hdd/hdd3/data2:/data2
     networks:
       dbnet:
         ipv4_address: 10.5.0.4
@@ -128,7 +128,7 @@ services:
       - ./cluster/server4/P4-agent:/data/ddb/server/P4-agent
       - ./cluster/server4/P4-node1:/data/ddb/server/P4-node1
       - ./config/agent4.cfg:/data/ddb/server/config/agent.cfg
-      - /hdd/hdd4/data:/data2
+      - /hdd/hdd4/data2:/data2
     networks:
       dbnet:
         ipv4_address: 10.5.0.5
@@ -152,7 +152,7 @@ services:
       - ./cluster/server5/P5-agent:/data/ddb/server/P5-agent
       - ./cluster/server5/P5-node1:/data/ddb/server/P5-node1
       - ./config/agent5.cfg:/data/ddb/server/config/agent.cfg
-      - /hdd/hdd5/data:/data2
+      - /hdd/hdd5/data2:/data2
     networks:
       dbnet:
         ipv4_address: 10.5.0.6
@@ -176,7 +176,7 @@ services:
       - ./cluster/server6/P6-agent:/data/ddb/server/P6-agent
       - ./cluster/server6/P6-node1:/data/ddb/server/P6-node1
       - ./config/agent6.cfg:/data/ddb/server/config/agent.cfg
-      - /hdd/hdd6/data:/data2
+      - /hdd/hdd6/data2:/data2
     networks:
       dbnet:
         ipv4_address: 10.5.0.7
@@ -200,7 +200,7 @@ services:
       - ./cluster/server7/P7-agent:/data/ddb/server/P7-agent
       - ./cluster/server7/P7-node1:/data/ddb/server/P7-node1
       - ./config/agent7.cfg:/data/ddb/server/config/agent.cfg
-      - /hdd/hdd7/data:/data2
+      - /hdd/hdd7/data2:/data2
     networks:
       dbnet:
         ipv4_address: 10.5.0.8

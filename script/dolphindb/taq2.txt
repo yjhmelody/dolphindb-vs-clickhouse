@@ -33,7 +33,7 @@ buckets[BIN_NUM] = `ZZZZZZ		// 调整最右边界
 
 
 // ----------------- 创建数据库分区
-// 按 date(日期), symbol(股票代码) 进行分区，每天再根据 symbol 分为 100 个分区
+// 按 date(日期), symbol(股票代码) 进行分区
 DATE_RANGE = 2007.08.01..2007.09.30
 
 date_schema   = database("", VALUE, DATE_RANGE)
@@ -82,21 +82,14 @@ taq = db.loadTable(`taq)
 pnodeRun(clearAllCache);
 
 
-// --- 窗口函数查询：查询某种股票时间的差值（s)
-timer
-select top 10000 symbol, time, deltas(time) as time_diff from taq
-where
-
-	date == 2007.08.07
-order by time asc
 
 
 
-// 查询总记录数
+// 0. 查询总记录数
 timer
 select count(*) from taq
-// times: 104.845 ms  109.113 ms  104.539 ms
-// 连续查询 102.609 ms  93.695 ms  84.633 ms
+// times: 
+// 连续查询 
 // 内存 0.3 0.3
 
 
@@ -106,10 +99,10 @@ timer
 select * from taq
 where
 	symbol = 'IBM', 
-	date == 2007.08.07
-// times: 116.748 ms  149.129 ms  165.471 ms
-// 连续查询 10.742 ms  11.612 ms  7.174 ms
-// 内存 136.3 0.3
+	date == 2007.09.07
+// times:
+// 连续查询 
+// 内存 
 
 
 
@@ -119,12 +112,11 @@ select symbol, time, bid, ofr from taq
 where
 	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),
 	date between 2007.08.03 : 2007.08.07,
-	time between 09:30:00 : 09:40:00,
 	bid > 20
 
-// times: 182.99 ms  210.585 ms  208.487 ms
-// 连续查询 67.443 ms  65.755 ms  66.841 ms
-// 内存 744.3  264.3
+// times: 
+// 连续查询 
+// 内存 
 
 
 
@@ -137,9 +129,9 @@ where
 	time >= 07:36:37,
 	ofr > bid
 order by (ofr - bid) desc
-// times: 173.155 ms  199.938 ms  187.943 ms
-// 连续查询 27.077 ms  22.249 ms  28.478 ms
-// 内存 588.3 0.3
+// times: 
+// 连续查询 
+// 内存
 
 
 
@@ -151,9 +143,9 @@ where
 	symbol == 'IBM',
 	ofr > bid
 group by minute(time)
-// times: 45.3 ms  101.986 ms  74.189 ms
-// 连续查询 16.361 ms  32.176 ms  12.529 ms
-// 内存 0.3 72.3 MB
+// times: 
+// 连续查询 
+// 内存
 
 
 
@@ -164,16 +156,15 @@ select
 	sum(bidsiz) as sum_bidsiz 
 from taq 
 where 
-	date == 2007.08.07,
-	time between 09:00:00 : 21:00:00,
+	((date = 2007.09.10, time > 09:00:00) || ( date = 2007.08.11, time < 21:00:00)),
 	symbol in `IBM`MSFT`GOOG`YHOO,
 	bid >= 20,
 	ofr > 20
 group by symbol, minute(time) 
 order by symbol asc, minute_time asc
-// times: 136.7 ms  166.143 m  157.184 ms
-// 连续查询 46.203 ms  45.151 ms  45.131 ms
-// 内存 364.3  0.3
+// times: 
+// 连续查询 
+// 内存 
 
 
 
@@ -186,26 +177,19 @@ where
 	time between 09:30:00 : 14:30:00, 
 	bid > 0, 
 	ofr > bid
-// times: 1476.851 ms  1505.925 ms  1546.055 ms
-// 连续查询 1429.415 ms  1463.056 ms  1424.289 ms
-// 内存 168.3  168.3
+// times: 
+// 连续查询 
+// 内存 
 
 
 
-// 7. 经典查询：按 [日期、时间范围、卖出买入价格条件、股票代码] 过滤，查询 (各个股票 每分钟) [平均变化幅度]
+// 7. 窗口函数查询：查询某种股票时间的差值（s)
 timer
-select avg( (ofr - bid) / (ofr + bid) ) * 2 as spread 
-from taq 
-where 
-	date = 2007.08.01,
-	time between 09:30:00 : 16:00:00,
-	bid > 0,
-	ofr > bid
-group by symbol, minute(time) as minute
-// times: 6579.806 ms  6561.861 ms  6793.162 ms
-// 连续查询 6143.717 ms 5999.691 ms  6455.538 ms
-// 内存 1,537.6  1,423.1
+select symbol, time, deltas(time) as time_diff from taq
+where
 
+	date == 2007.09.04
+order by time asc
 
 
 // 8. 经典查询：计算 某天 (每个股票 每分钟) 最大卖出与最小买入价之差
@@ -213,14 +197,29 @@ timer
 select max(ofr) - min(bid) as gap 
 from taq 
 where 
-	date = 2007.08.03, 
+	date = 2007.08.01, 
 	bid > 0, 
 	ofr > bid
 group by symbol, minute(time) as minute
-// times: 4413.58 ms  4313.455 ms  4344.721 ms
-// 连续查询 4057.016 ms 4058.613 ms 4145.638 ms
-// 内存 	5,040.6  3,888.5 
+// times: 
+// 连续查询 
+// 内存 
 
+
+// --------------------------------------------------------------------------------------------- //
+
+// 7. 经典查询：按 [日期、时间范围、卖出买入价格条件、股票代码] 过滤，查询 (各个股票 每分钟) [平均变化幅度]
+timer
+select avg( (ofr - bid) / (ofr + bid) ) * 2 as spread 
+from taq 
+where 
+	date = 2007.08.01,
+	bid > 0,
+	ofr > bid
+group by symbol, minute(time) as minute
+// times: 
+// 连续查询 
+// 内存 
 
 
 // 9. 经典查询：按 [股票代码、日期段、时间段] 过滤, 查询 (每天，时间段内每分钟) 均价
