@@ -64,38 +64,20 @@ Date:           [111111122222223333123321111122222233321111111212222222311111222
 
 稀疏索引让你能操作有巨量行的表。因为这些索引是常驻内存（RAM）的。
 
-
 ClickHouse 不要求主键惟一。所以，你可以插入多条具有相同主键的行。
-
-| Column | DolphinDB 数据类型    | ClickHouse 数据类型 |
-| ------ | --------------------- | ------------------- |
-| symbol | SYMBOL (分区第二维度) | String              |
-| date   | DATE (分区第一维度)   | Date                |
-| time   | SECOND                | DateTime            |
-| bid    | DOUBLE                | Float64             |
-| ofr    | DOUBLE                | Float64             |
-| bidsiz | INT                   | Int32               |
-| ofrsiz | INT                   | Int32               |
-| mode   | INT                   | Int32               |
-| ex     | CHAR                  | Int8                |
-| mmid   | SYMBOL                | String              |
-
 
 ## 清理缓存
 
 清除页面缓存（PageCache）
-
 ```
 sync; echo 1 > /proc/sys/vm/drop_caches       
 ```
 
 清理目录项和inode
-
 ```
 sync; echo 2 > /proc/sys/vm/drop_caches
 ```
 
 清除页面缓存，目录项和inode
-
 sync; echo 3 > /proc/sys/vm/drop_caches 
 ```
