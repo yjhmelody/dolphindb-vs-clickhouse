@@ -45,29 +45,27 @@ close(db)
 // --------------------- 导入数据
 db_path = 'dfs://TAQ2'
 
-def load_csv(db_path, file) {
+def load_csv(db_path, f) {
 	db = database(db_path)
-	loadTextEx(db, `taq, `date`symbol, file)	
+	loadTextEx(db, `taq, `date`symbol, f)	
 }
 
-def loadCSV(node_id, job_id, job_desc, db_path) {
+def loadCSV(job_id, job_desc, db_path) {
 	taq_path = '/data2/TAQ/'
-	fs = taq_path + (exec filename from files(taq_path) order by filename);
-	//db = database(db_path)
+	fs = taq_path + (exec filename from files(taq_path) order by filename)
 	for (f in fs) {
-		rpc(node_id, submitJob, job_id, job_desc, load_csv, db_path, f)
-		//rpc(node_id, submitJob, job_id, job_desc, loadTextEx, db, `taq, `date`symbol,  f)
+		submitJob(job_id, job_desc, load_csv, db_path, f)
 	}
 }
 
+rpc("P1-node1", loadCSV, `node1, "load csv", db_path)
+rpc("P2-node1", loadCSV, `node2, "load csv", db_path)
+rpc("P3-node1", loadCSV, `node3, "load csv", db_path)
+rpc("P4-node1", loadCSV, `node4, "load csv", db_path)
+rpc("P5-node1", loadCSV, `node5, "load csv", db_path)
+rpc("P6-node1", loadCSV, `node6, "load csv", db_path)
+rpc("P7-node1", loadCSV, `node7, "load csv", db_path)
 
-loadCSV("P1-node1", `node1, "load csv", db_path);
-loadCSV("P2-node1", `node2, "load csv", db_path);
-loadCSV("P3-node1", `node3, "load csv", db_path);
-loadCSV("P4-node1", `node4, "load csv", db_path);
-loadCSV("P5-node1", `node5, "load csv", db_path);
-loadCSV("P6-node1", `node6, "load csv", db_path);
-loadCSV("P7-node1", `node7, "load csv", db_path);
 
 pnodeRun(getRecentJobs)
 

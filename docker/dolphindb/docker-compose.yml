@@ -79,6 +79,8 @@ services:
       - ./config/dolphindb.lic:/data/ddb/server/dolphindb.lic
       - ./config/agent2.cfg:/data/ddb/server/config/agent.cfg
       - /hdd/hdd2/data2:/data2
+    ports:
+      - "19002:19001"
     networks:
       dbnet:
         ipv4_address: 10.5.0.3
@@ -103,6 +105,8 @@ services:
       - ./config/dolphindb.lic:/data/ddb/server/dolphindb.lic
       - ./config/agent3.cfg:/data/ddb/server/config/agent.cfg
       - /hdd/hdd3/data2:/data2
+    ports:
+      - "19003:19001"
     networks:
       dbnet:
         ipv4_address: 10.5.0.4
@@ -127,6 +131,8 @@ services:
       - ./config/dolphindb.lic:/data/ddb/server/dolphindb.lic
       - ./config/agent4.cfg:/data/ddb/server/config/agent.cfg
       - /hdd/hdd4/data2:/data2
+    ports:
+      - "19004:19001"
     networks:
       dbnet:
         ipv4_address: 10.5.0.5
@@ -151,6 +157,8 @@ services:
       - ./config/dolphindb.lic:/data/ddb/server/dolphindb.lic
       - ./config/agent5.cfg:/data/ddb/server/config/agent.cfg
       - /hdd/hdd5/data2:/data2
+    ports:
+      - "19005:19001"
     networks:
       dbnet:
         ipv4_address: 10.5.0.6
@@ -175,6 +183,8 @@ services:
       - ./config/dolphindb.lic:/data/ddb/server/dolphindb.lic
       - ./config/agent6.cfg:/data/ddb/server/config/agent.cfg
       - /hdd/hdd6/data2:/data2
+    ports:
+      - "19006:19001"
     networks:
       dbnet:
         ipv4_address: 10.5.0.7
@@ -193,13 +203,14 @@ services:
         soft: 65536
         hard: 65536
     volumes:
-
       - /hdd/hdd7/dolphindb/server7/log:/data/ddb/server/log
       - /hdd/hdd7/dolphindb/server7/P7-agent:/data/ddb/server/P7-agent
       - /hdd/hdd7/dolphindb/server7/P7-node1:/data/ddb/server/P7-node1
       - ./config/dolphindb.lic:/data/ddb/server/dolphindb.lic
       - ./config/agent7.cfg:/data/ddb/server/config/agent.cfg
       - /hdd/hdd7/data2:/data2
+    ports:
+      - "19007:19001"
     networks:
       dbnet:
         ipv4_address: 10.5.0.8

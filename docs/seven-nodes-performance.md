@@ -107,22 +107,26 @@ DolphinDB 拥有自己的脚本语言，导入时
 // ...
 db_path = 'dfs://TAQ2'
 
-def loadCSV(node_id, job_id, job_desc, db_path) {
-	taq_path = '/data2/TAQ/'
-	fs = taq_path + (exec filename from files(taq_path) order by filename);
+def load_csv(db_path, f) {
 	db = database(db_path)
+	loadTextEx(db, `taq, `date`symbol, f)	
+}
+
+def loadCSV(job_id, job_desc, db_path) {
+	taq_path = '/data2/TAQ/'
+	fs = taq_path + (exec filename from files(taq_path) order by filename)
 	for (f in fs) {
-		rpc(node_id, submitJob, job_id, job_desc, loadTextEx, db, `taq, `date`symbol,  f)
+		submitJob(job_id, job_desc, load_csv, db_path, f)
 	}
 }
 
-loadCSV("P1-node1", `node1, "load csv", db_path);
-loadCSV("P2-node1", `node2, "load csv", db_path);
-loadCSV("P3-node1", `node3, "load csv", db_path);
-loadCSV("P4-node1", `node4, "load csv", db_path);
-loadCSV("P5-node1", `node5, "load csv", db_path);
-loadCSV("P6-node1", `node6, "load csv", db_path);
-loadCSV("P7-node1", `node7, "load csv", db_path);
+rpc("P1-node1", loadCSV, `node1, "load csv", db_path)
+rpc("P2-node1", loadCSV, `node2, "load csv", db_path)
+rpc("P3-node1", loadCSV, `node3, "load csv", db_path)
+rpc("P4-node1", loadCSV, `node4, "load csv", db_path)
+rpc("P5-node1", loadCSV, `node5, "load csv", db_path)
+rpc("P6-node1", loadCSV, `node6, "load csv", db_path)
+rpc("P7-node1", loadCSV, `node7, "load csv", db_path)
 ```
 
 
@@ -131,6 +135,8 @@ loadCSV("P7-node1", `node7, "load csv", db_path);
 | -------- | --------- | ---------- |
 | 导入时间 |           | 28分5秒    |
 | 磁盘空间 | 83.0 GB   | 94.8 GB    |
+
+DolphinDB 和 ClickHouse 都支持LZ４压缩，因此导入性能都非常高。
 
 ### 查询性能
 
@@ -177,16 +183,16 @@ DolphinDB 和 ClickHouse 对表的读操作都是自动并行的。
 所有查询分为2种：第一次查询的性能，没有缓存；连续查询，对比缓存带来的性能改变。每个查询用例测量3次。
 
 
-| 样例        | DolphinDB 用时(第一次查询) | ClickHouse 用时(第一次查询) | DolphinDB 用时(连续查询) | ClickHouse 用时(连续查询) |
-| ----------- | -------------------------- | --------------------------- | ------------------------ | ------------------------- |
-| 0. 查询总数 |                            |                             |                          |                           |
-| 1. 点查询   |                            |                             |                          |                           |
-| 2. 范围查询 |                            |                             |                          |                           |
-| 3. top1000  |                            |                             |                          |                           |
-| 4. 聚合查询 |                            |                             |                          |                           |
-| 5. 聚合查询 |                            |                             |                          |                           |
-| 6. 经典查询 |                            |                             |                          |                           |
-| 7. 窗口查询 |                            |                             |                          |                           |
-| 8. 经典查询 |                            |                             |                          |                           |
-| 9.统计查询  |                            |                             |                          |                           |
+|    样例     | DolphinDB 用时(第一次查询) | ClickHouse 用时(第一次查询) | DolphinDB 用时(连续查询) | ClickHouse 用时(连续查询) |
+| :---------: | :------------------------: | :-------------------------: | :----------------------: | :-----------------------: |
+| 0. 查询总数 |     137ms 190ms  160ms     |   14.674s 13.743s 16.689s   |    140ms 142ms 148ms     |     661ms 649ms 646ms     |
+|  1. 点查询  |     412ms 319ms 330ms      |      810ms 625ms 677ms      |    121ms 119ms 117ms     |     198ms 193ms 195ms     |
+| 2. 范围查询 |     971ms 1224ms 958ms     |     868ms 976ms 1061ms      |    850ms 855ms 839ms     |     354ms 366ms 433ms     |
+| 3. top1000  |     607ms 596ms 411ms      |      956ms 640ms 808ms      |      40ms 42ms 38ms      |      94ms 98ms 98ms       |
+| 4. 聚合查询 |     328ms 390ms 178ms      |      135ms 126ms 189ms      |      28ms 29ms 28ms      |      37ms 45ms 43ms       |
+| 5. 聚合查询 |     360ms 425ms 252ms      |      545ms 509ms 450ms      |     94ms 101ms 96ms      |     115ms 127ms 104ms     |
+| 6. 经典查询 |     364ms 357ms 359ms      |      337ms 206ms 280ms      |    225ms 233ms 226ms     |     220ms 220ms 227ms     |
+| 7. 窗口查询 |     128ms 123ms 123ms      |      733ms 511ms 834ms      |      91ms 87ms 94ms      |     209ms 196ms 209ms     |
+| 8. 经典查询 |    4.799s 5.481s 4.051s    |   22.295s 22.966s 24.186s   |   2.826s 3.004s 2.872s   |   4.500s 4.472s 4.465s    |
+| 9.统计查询  |     321ms 364ms 229ms      |      378ms 205ms 387ms      |      44ms 44ms 46ms      |      45ms 43ms 43ms       |
 
