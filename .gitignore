@@ -12,3 +12,4 @@ dolphindb.lic
 *.msg
 domain
 *.obj
+.workspace

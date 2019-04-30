@@ -5,7 +5,7 @@ login(`admin, `123456)
 // ----------------- 参数
 taq_path = '/data2/TAQ/'
 sample_taq_path = taq_path + 'TAQ20070801.csv'
-db_path = 'dfs://TAQ'
+db_path = 'dfs://TAQ2'
 table_name = `taq
 tb_schema = extractTextSchema(sample_taq_path)
 schema = table(lower(tb_schema.name) as name, tb_schema.type)
@@ -33,10 +33,9 @@ buckets[BIN_NUM] = `ZZZZZZ		// 调整最右边界
 
 
 // ----------------- 创建数据库分区
-// 按 date(日期), symbol(股票代码) 进行分区
+// 按 date(日期), symbol(股票代码) 进行分区 每天再根据 symbol 分为 100 个分区
 DATE_RANGE = 2007.08.01..2007.09.30
-
-date_schema   = database("", VALUE, DATE_RANGE)
+date_schema = database("", VALUE, DATE_RANGE)
 symbol_schema = database("", RANGE, buckets)
 db = database(db_path, COMPO, [date_schema, symbol_schema])
 db.createPartitionedTable(table(100:0, schema.name, schema.type), table_name, `date`symbol)
@@ -44,53 +43,61 @@ close(db)
 
 
 // --------------------- 导入数据
-db_path = 'dfs://TAQ'
+db_path = 'dfs://TAQ2'
 
-def loadCSV(db_path) {
-	taq_path = '/data2/'
-	files = taq_path + (exec filename from files(taq_path) order by filename);
+def load_csv(db_path, file) {
 	db = database(db_path)
-	for (f in files) {
-		loadTextEx(db, `taq, `date`symbol, f)
+	loadTextEx(db, `taq, `date`symbol, file)	
+}
+
+def loadCSV(node_id, job_id, job_desc, db_path) {
+	taq_path = '/data2/TAQ/'
+	fs = taq_path + (exec filename from files(taq_path) order by filename);
+	//db = database(db_path)
+	for (f in fs) {
+		rpc(node_id, submitJob, job_id, job_desc, load_csv, db_path, f)
+		//rpc(node_id, submitJob, job_id, job_desc, loadTextEx, db, `taq, `date`symbol,  f)
 	}
 }
 
-rpc("P1-node1", submitJob, `node1, "load csv", loadCSV, db_path);
-rpc("P2-node1", submitJob, `node2, "load csv", loadCSV, db_path);
-rpc("P3-node1", submitJob, `node3, "load csv", loadCSV, db_path);
-rpc("P4-node1", submitJob, `node4, "load csv", loadCSV, db_path);
-rpc("P5-node1", submitJob, `node5, "load csv", loadCSV, db_path);
-rpc("P6-node1", submitJob, `node6, "load csv", loadCSV, db_path);
-rpc("P7-node1", submitJob, `node7, "load csv", loadCSV, db_path);
 
-pnodeRun(getRecentJobs)	
-// notes: read ~100MB  write 10~30MB network 8~13MB
-// time: 35 min 30.3 s
+loadCSV("P1-node1", `node1, "load csv", db_path);
+loadCSV("P2-node1", `node2, "load csv", db_path);
+loadCSV("P3-node1", `node3, "load csv", db_path);
+loadCSV("P4-node1", `node4, "load csv", db_path);
+loadCSV("P5-node1", `node5, "load csv", db_path);
+loadCSV("P6-node1", `node6, "load csv", db_path);
+loadCSV("P7-node1", `node7, "load csv", db_path);
+
+pnodeRun(getRecentJobs)
+
 
 
 
 // --------------------- 加载数据库
 login(`admin, `123456)
 
-db_path = 'dfs://TAQ'
+db_path = 'dfs://TAQ2'
 db = database(db_path)
 taq = db.loadTable(`taq)
 
-
+/*
+db_path = 'dfs://TAQ2'
+dropDatabase(db_path)
+*/
 
 // ------------------------ 查询性能测试 --------------------------------------
-pnodeRun(clearAllCache);
 
 
 
 
+pnodeRun(clearAllCache)
 
 // 0. 查询总记录数
 timer
 select count(*) from taq
-// times: 
-// 连续查询 
-// 内存 0.3 0.3
+// times: 137ms 190ms 160ms
+// 连续查询 140ms 142ms 148ms
 
 
 
@@ -100,9 +107,9 @@ select * from taq
 where
 	symbol = 'IBM', 
 	date == 2007.09.07
-// times:
-// 连续查询 
-// 内存 
+// times: 412ms 319ms 330ms
+// 连续查询 121ms 119ms 117ms
+
 
 
 
@@ -114,9 +121,9 @@ where
 	date between 2007.08.03 : 2007.08.07,
 	bid > 20
 
-// times: 
-// 连续查询 
-// 内存 
+// times: 971ms 1224ms 958ms
+// 连续查询 850ms 855ms 839ms
+
 
 
 
@@ -129,9 +136,9 @@ where
 	time >= 07:36:37,
 	ofr > bid
 order by (ofr - bid) desc
-// times: 
-// 连续查询 
-// 内存
+// times: 607ms 596ms 411ms
+// 连续查询 40ms 42ms 38ms
+
 
 
 
@@ -143,43 +150,36 @@ where
 	symbol == 'IBM',
 	ofr > bid
 group by minute(time)
-// times: 
-// 连续查询 
-// 内存
+// times: 328ms 390ms 178ms
+// 连续查询 28ms 29ms 28ms
 
 
 
 // 5. 聚合查询.多分区维度 + 排序
 timer
-select 
-	std(bid) 	as std_bid,
-	sum(bidsiz) as sum_bidsiz 
-from taq 
+select std(bid) as std_bid, sum(bidsiz) as sum_bidsiz from taq 
 where 
-	((date = 2007.09.10, time > 09:00:00) || ( date = 2007.08.11, time < 21:00:00)),
+	((date = 2007.09.10 and time > 09:00:00) or ( date = 2007.08.11 and time < 21:00:00)),
 	symbol in `IBM`MSFT`GOOG`YHOO,
 	bid >= 20,
 	ofr > 20
 group by symbol, minute(time) 
 order by symbol asc, minute_time asc
-// times: 
-// 连续查询 
-// 内存 
+// times: 360ms 425ms 252ms
+// 连续查询 94ms 101ms 96ms
 
 
 
 // 6. 经典查询：按 [多个股票代码、日期，时间范围、报价范围] 过滤，查询 [股票代码、时间、买入价、卖出价]
 timer
-select symbol, time, bid, ofr from taq
-where
+select symbol, time, bid, ofr from taq where
 	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'), 
 	date = 2007.08.03, 
 	time between 09:30:00 : 14:30:00, 
 	bid > 0, 
 	ofr > bid
-// times: 
-// 连续查询 
-// 内存 
+// times: 364ms 357ms 359ms
+// 连续查询 225ms 233ms 226ms
 
 
 
@@ -187,23 +187,36 @@ where
 timer
 select symbol, time, deltas(time) as time_diff from taq
 where
-
-	date == 2007.09.04
+	symbol = 'YHOO',
+	date = 2007.09.04
 order by time asc
+// times: 128ms 123ms 123ms
+// 连续查询 91ms 87ms 94ms
+
 
 
 // 8. 经典查询：计算 某天 (每个股票 每分钟) 最大卖出与最小买入价之差
 timer
-select max(ofr) - min(bid) as gap 
-from taq 
+select max(ofr) - min(bid) as gap from taq
 where 
 	date = 2007.08.01, 
 	bid > 0, 
 	ofr > bid
 group by symbol, minute(time) as minute
-// times: 
-// 连续查询 
-// 内存 
+// times: 4799ms 5481ms 4051ms
+// 连续查询 2826ms 3004ms 2872ms
+
+
+// 9. median 函数查询, 拿到所有股票数据后计算
+timer
+select median(ofr), median(bid) from taq 
+where 
+	date = 2007.08.10, 
+	symbol = 'IBM'
+// times: 321ms 364ms 229ms
+// 连续查询  44ms 44ms 46ms
+
+
 
 
 // --------------------------------------------------------------------------------------------- //

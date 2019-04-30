@@ -282,7 +282,6 @@ SELECT stddevPop(bid) AS std_bid, sum(bidSiz) AS sum_bidsiz FROM taq5 WHERE time
 
 
 
-SELECT max(ofr) - min(bid) AS gap FROM taq5 WHERE toDate(time) IN '2007-08-01' AND bid > 0 AND ofr > bid GROUP BY symbol, toStartOfMinute(time) AS minute
 -- ok
 -- 6. 经典查询：按 [多个股票代码、日期，时间范围、报价范围] 过滤，查询 [股票代码、时间、买入价、卖出价]
 SELECT symbol, time, bid, ofr FROM taq where symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') AND time BETWEEN toDateTime('2007-08-03 09:30:00') AND toDateTime('2007-08-03 14:30:00') AND bid > 0 AND ofr > bid
