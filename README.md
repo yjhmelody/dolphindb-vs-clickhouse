@@ -73,8 +73,11 @@ db = database(db_path, COMPO, [date_schema, symbol_schema])
 db.createPartitionedTable(table(schema.name, schema.type), table_name, `date`symbol)
 ```
 
-在ClickHouse中，我们尝试了一些表结构、分区方式、主键和分布式表的分发方式，最终选择了如下结构，该结构在该对比场景下综合上最优性能。主键默认跟排序键相同,并且主键允许重复。
-通过`Distributed`表来选择`MergeTree`表插入，而查询`Distributed`表时，ClickHouse会自动委托其他节点去查找局部`MergeTree`表。
+在ClickHouse中，我们尝试了一些表结构、分区方式、主键和分布式表的分发方式，最终选择了如下结构，该结构在该对比场景下综合上最优性能。
+
+主键默认跟排序键相同,并且主键允许重复。`index_granularity=8192` 设置了索引粒度，它表示索引中相邻`标记`间的数据行数。ClickHouse 会为每个数据片段创建一个索引文件，索引文件包含每个索引行（`标记`）的主键值。索引行号定义为 `n * index_granularity` 。最大的 `n` 等于总行数除以 `index_granularity` 的值的整数部分。对于每列，跟主键相同的索引行处也会写入`标记`。这些`标记`可以让你直接找到数据所在的列。
+
+通过`Distributed`表来选择`MergeTree`表插入，而查询`Distributed`表时，ClickHouse会自动委托其他节点去查找本地`MergeTree`表。
 
 ```sql
 CREATE TABLE IF NOT EXISTS taq_local (
@@ -170,6 +173,8 @@ done;
 
 为了减少网络开销带来的影响，客户端直接在服务器上启动。DolphinDB在启动数据节点后可以之间进入Web客户端中进行交互。对于ClickHouse，我们使用官方docker镜像与服务端交互。
 
+DolphinDB 和 ClickHouse 两款数据库对表的读操作都是自动并行的。
+
 #### 查询语句设计
 
 我们编写了10个查询语句来进行对比
@@ -189,43 +194,80 @@ done;
 
 | Query | DolphinDB                                                    | ClickHouse                                                   |
 | ----- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 0     | select count(*) from taq                                     | SELECT count(*) FROM taq;                                    |
-| 1     | select * from taq<br/>where<br/>	symbol = 'IBM', <br/>	date == 2007.09.07 | SELECT * FROM taq <br /> WHERE symbol = 'IBM' <br/>AND toDate(time) = '2007-09-07'; |
-| 2     | select symbol, time, bid, ofr from taq <br/>where<br/>	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),<br/>	date between 2007.08.03 : 2007.08.07,<br/>	bid > 20 | SELECT symbol, time, bid, ofr FROM taq <br/> WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') <br/>AND toDate(time) BETWEEN '2007-08-03' AND '2007-08-07' <br/>AND bid > 20 |
-| 3     | select top 1000 * from taq <br/>where<br/>	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),<br/>	date == 2007.08.07,<br/>	time >= 07:36:37,<br/>	ofr > bid<br/>order by (ofr - bid) desc | SELECT * FROM taq <br/>WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') <br/>AND time >= toDateTime('2007-08-07 07:36:37') <br/>AND time < toDateTime('2007-08-08 00:00:00')<br/> AND ofr > bid <br/>ORDER BY (ofr - bid) DESC LIMIT 1000 |
-| 4     | select max(bid) as max_bid, min(ofr) as min_ofr from taq<br/>where <br/>	date == 2007.08.02,<br/>	symbol == 'IBM',<br/>	ofr > bid<br/>group by minute(time) | SELECT max(bid) as max_bid, min(ofr) AS min_ofr FROM taq <br/>WHERE toDate(time) = '2007-08-02' <br/>AND symbol = 'IBM' AND ofr > bid <br/>GROUP BY toStartOfMinute(time) |
-| 5     | select std(bid) as std_bid, sum(bidsiz) as sum_bidsiz from taq <br/>where <br/>	((date = 2007.09.10 and time > 09:00:00) or ( date = 2007.08.11 and time < 21:00:00)),<br/>	symbol in `IBM`MSFT`GOOG`YHOO,<br/>	bid >= 20,<br/>	ofr > 20<br/>group by symbol, minute(time) <br/>order by symbol asc, minute_time asc | SELECT stddevPop(bid) AS std_bid, sum(bidSiz) AS sum_bidsiz FROM taq <br/> WHERE time BETWEEN toDateTime('2007-09-10 09:00:00')  AND toDateTime('2007-09-11 21:00:00') <br/>AND symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO')<br/>AND bid >= 20 AND ofr > 20<br/>GROUP BY symbol, toStartOfMinute(time) AS minute_time <br/>ORDER BY symbol ASC , minute_time ASC |
-| 6     | select symbol, time, bid, ofr from taq where<br/>	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'), <br/>	date = 2007.08.03, <br/>	time between 09:30:00 : 14:30:00, <br/>	bid > 0, <br/>	ofr > bid | SELECT symbol, time, bid, ofr FROM taq <br/>where symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') <br/>AND time BETWEEN toDateTime('2007-08-03 09:30:00') AND toDateTime('2007-08-03 14:30:00') <br/>AND bid > 0 <br/>AND ofr > bid |
-| 7     | select symbol, time, deltas(time) as time_diff from taq<br/>where<br/>	symbol = 'YHOO',<br/>	date = 2007.09.04<br/>order by time asc | SELECT symbol, time, runningDifference(time) AS time_diff FROM taq <br/> WHERE symbol = 'YHOO' AND date = '2007-09-04' <br/>ORDER BY time ASC |
-| 8     | select max(ofr) - min(bid) as gap from taq<br/>where <br/>	date = 2007.08.01, <br/>	bid > 0, <br/>	ofr > bid<br/>group by symbol, minute(time) as minute | SELECT max(ofr) - min(bid) AS gap FROM taq  <br/>WHERE toDate(time) IN '2007-08-01' <br/>AND bid > 0 AND ofr > bid <br/>GROUP BY symbol, toStartOfMinute(time) AS minute |
-| 9     | select median(ofr), median(bid) from taq <br/>where <br/>	date = 2007.08.10, <br/>	symbol = 'IBM' | SELECT median(ofr), median(bid) FROM taq <br/> WHERE date = '2007-08-10' <br/>AND symbol = 'IBM' |
+| 1     | select count(*) from taq                                     | SELECT count(*) FROM taq;                                    |
+| 2     | select * from taq<br/>where<br/>	symbol = 'IBM', <br/>	date == 2007.09.07 | SELECT * FROM taq <br /> WHERE symbol = 'IBM' <br/>AND toDate(time) = '2007-09-07'; |
+| 3     | select symbol, time, bid, ofr from taq <br/>where<br/>	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),<br/>	date between 2007.08.03 : 2007.08.07,<br/>	bid > 20 | SELECT symbol, time, bid, ofr FROM taq <br/> WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') <br/>AND toDate(time) BETWEEN '2007-08-03' AND '2007-08-07' <br/>AND bid > 20 |
+| 4     | select top 1000 * from taq <br/>where<br/>	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'),<br/>	date == 2007.08.07,<br/>	time >= 07:36:37,<br/>	ofr > bid<br/>order by (ofr - bid) desc | SELECT * FROM taq <br/>WHERE symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') <br/>AND time >= toDateTime('2007-08-07 07:36:37') <br/>AND time < toDateTime('2007-08-08 00:00:00')<br/> AND ofr > bid <br/>ORDER BY (ofr - bid) DESC LIMIT 1000 |
+| 5     | select max(bid) as max_bid, min(ofr) as min_ofr from taq<br/>where <br/>	date == 2007.08.02,<br/>	symbol == 'IBM',<br/>	ofr > bid<br/>group by minute(time) | SELECT max(bid) as max_bid, min(ofr) AS min_ofr FROM taq <br/>WHERE toDate(time) = '2007-08-02' <br/>AND symbol = 'IBM' AND ofr > bid <br/>GROUP BY toStartOfMinute(time) |
+| 6     | select std(bid) as std_bid, sum(bidsiz) as sum_bidsiz from taq <br/>where <br/>	((date = 2007.09.10 and time > 09:00:00) or ( date = 2007.08.11 and time < 21:00:00)),<br/>	symbol in `IBM`MSFT`GOOG`YHOO,<br/>	bid >= 20,<br/>	ofr > 20<br/>group by symbol, minute(time) <br/>order by symbol asc, minute_time asc | SELECT stddevPop(bid) AS std_bid, sum(bidSiz) AS sum_bidsiz FROM taq <br/> WHERE time BETWEEN toDateTime('2007-09-10 09:00:00')  AND toDateTime('2007-09-11 21:00:00') <br/>AND symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO')<br/>AND bid >= 20 AND ofr > 20<br/>GROUP BY symbol, toStartOfMinute(time) AS minute_time <br/>ORDER BY symbol ASC , minute_time ASC |
+| 7     | select symbol, time, bid, ofr from taq where<br/>	symbol in ('IBM', 'MSFT', 'GOOG', 'YHOO'), <br/>	date = 2007.08.03, <br/>	time between 09:30:00 : 14:30:00, <br/>	bid > 0, <br/>	ofr > bid | SELECT symbol, time, bid, ofr FROM taq <br/>where symbol IN ('IBM', 'MSFT', 'GOOG', 'YHOO') <br/>AND time BETWEEN toDateTime('2007-08-03 09:30:00') AND toDateTime('2007-08-03 14:30:00') <br/>AND bid > 0 <br/>AND ofr > bid |
+| 8     | select symbol, time, deltas(time) as time_diff from taq<br/>where<br/>	symbol = 'YHOO',<br/>	date = 2007.09.04<br/>order by time asc | SELECT symbol, time, runningDifference(time) AS time_diff FROM taq <br/> WHERE symbol = 'YHOO' AND date = '2007-09-04' <br/>ORDER BY time ASC |
+| 9     | select max(ofr) - min(bid) as gap from taq<br/>where <br/>login(`admin, `123456)<br/><br/>db_path = 'dfs://TAQ2'<br/>db = database(db_path)<br/>taq = db.loadTable(`taq)	date = 2007.08.01, <br/>	bid > 0, <br/>	ofr > bid<br/>group by symbol, minute(time) as minute | SELECT max(ofr) - min(bid) AS gap FROM taq  <br/>WHERE toDate(time) IN '2007-08-01' <br/>AND bid > 0 AND ofr > bid <br/>GROUP BY symbol, toStartOfMinute(time) AS minute |
+| 10    | select median(ofr), median(bid) from taq <br/>where <br/>	date = 2007.08.10, <br/>	symbol = 'IBM' | SELECT median(ofr), median(bid) FROM taq <br/> WHERE date = '2007-08-10' <br/>AND symbol = 'IBM' |
 
 #### 查询性能对比
 
 所有查询分为2种：
 
-- 第一次查询的性能，排除缓存影响
+- 一次查询的性能，排除缓存影响
 
 - 连续查询，即缓存以后继续查询，对比缓存带来的性能影响
 
-每个查询用例测试3次。DolphinDB 和 ClickHouse 两款数据库对表的读操作都是自动并行的。
+每个查询用例测试3次。
 
-|    样例     | DolphinDB 用时(第一次查询) | ClickHouse 用时(第一次查询) | DolphinDB 用时(连续查询) | ClickHouse 用时(连续查询) |
-| :---------: | :------------------------: | :-------------------------: | :----------------------: | :-----------------------: |
-| 0. 查询总数 |     137ms 190ms  160ms     |   14.674s 13.743s 16.689s   |    140ms 142ms 148ms     |     661ms 649ms 646ms     |
-|  1. 点查询  |     412ms 319ms 330ms      |      810ms 625ms 677ms      |    121ms 119ms 117ms     |     198ms 193ms 195ms     |
-| 2. 范围查询 |     971ms 1224ms 958ms     |     868ms 976ms 1061ms      |    850ms 855ms 839ms     |     354ms 366ms 433ms     |
-| 3. top1000  |     607ms 596ms 411ms      |      956ms 640ms 808ms      |      40ms 42ms 38ms      |      94ms 98ms 98ms       |
-| 4. 聚合查询 |     328ms 390ms 178ms      |      135ms 126ms 189ms      |      28ms 29ms 28ms      |      37ms 45ms 43ms       |
-| 5. 聚合查询 |     360ms 425ms 252ms      |      545ms 509ms 450ms      |     94ms 101ms 96ms      |     115ms 127ms 104ms     |
-| 6. 经典查询 |     364ms 357ms 359ms      |      337ms 206ms 280ms      |    225ms 233ms 226ms     |     220ms 220ms 227ms     |
-| 7. 窗口查询 |     128ms 123ms 123ms      |      733ms 511ms 834ms      |      91ms 87ms 94ms      |     209ms 196ms 209ms     |
-| 8. 经典查询 |    4.799s 5.481s 4.051s    |   22.295s 22.966s 24.186s   |   2.826s 3.004s 2.872s   |   4.500s 4.472s 4.465s    |
-| 9.统计查询  |     321ms 364ms 229ms      |      378ms 205ms 387ms      |      44ms 44ms 46ms      |      45ms 43ms 43ms       |
+##### 一次查询性能对比
+
+|    样例     | DolphinDB | DolphinDB | DolphinDB | ClickHouse | ClickHouse | ClickHouse |
+| :---------: | :-------: | :-------: | --------- | --------- | --------- | --------- |
+| 1. 查询总数 |   137ms   |   190ms   | 160ms     | 14674ms    | 13743ms    | 16689ms    |
+|  2. 点查询  |   412ms   |   319ms   | 330ms     | 810ms      | 625ms      | 677ms     |
+| 3. 范围查询 |   971ms   |  1224ms   | 958ms     | 868ms      | 976ms      | 1061ms     |
+| 4. top1000 |   607ms   |   596ms   | 411ms     | 956ms      | 640ms      | 808ms      |
+| 5. 聚合查询 |   328ms   |   390ms   | 178ms     | 135ms      | 126ms      | 189ms      |
+| 6. 聚合查询 |   360ms   |   425ms   | 252ms     | 545ms      | 509ms      | 450ms      |
+| 7. 经典查询 |   364ms   |   357ms   | 359ms     | 337ms      | 206ms      | 280ms      |
+| 8. 窗口查询 |   128ms   |   123ms   | 123ms     | 733ms      | 511ms      | 834ms      |
+| 9. 经典查询 |  4799ms   |  5481ms   | 4051ms    | 22295ms    | 22966ms    | 24186ms   |
+| 10.统计查询 |   321ms   |   364ms   | 229ms    | 378ms      | 205ms      | 387ms      |
+
+
+
+##### 连续查询性能对比
+
+|    样例     | DolphinDB | DolphinDB | DolphinDB | ClickHouse | ClickHouse | ClickHouse |
+| :---------: | :-------: | :-------: | --------- | --------- | --------- | --------- |
+| 1. 查询总数 |   140ms   |   142ms   | 148ms     | 661ms      | 649ms      | 646ms      |
+|  2. 点查询  |   121ms   |   119ms   | 117ms     | 198ms      | 193ms      | 195ms      |
+| 3. 范围查询 |   850ms   |   855ms   | 839ms     | 354ms      | 366ms      | 433ms      |
+| 4. top1000 |   40ms    |   42ms    | 38ms      | 94ms       | 98ms       | 98ms       |
+| 5. 聚合查询 |   28ms    |   29ms    | 28ms      | 37ms       | 45ms       | 43ms       |
+| 6. 聚合查询 |   94ms    |   101ms   | 96ms      | 115ms      | 127ms      | 104ms      |
+| 7. 经典查询 |   225ms   |   233ms   | 226ms     | 220ms      | 220ms      | 227ms      |
+| 8. 窗口查询 |   91ms    |   87ms    | 94ms      | 209ms      | 196ms      | 209ms      |
+| 9. 经典查询 |  2826ms   |  3004ms   | 2872ms    | 4500ms     | 4472ms     | 4465ms     |
+| 10.统计查询 |   44ms    |   44ms    | 46ms      | 45ms       | 43ms       | 43ms       |
 
 ### 性能对比分析
 
+可以看到对于窗口函数，DolphinDB的速度比ClickHouse要快很多。实际上ClickHouse对窗口函数的支持很有限。ClickHouse不支持多级表连接，而且行为跟常规SQL语句差别很大。ClickHouse没有专门的时分秒数据类型，默认的配置也是按月进行分区，场景定位可能更倾向于较粗时间粒度的时间序列分析。
 
+本次性能对比没有使用上复杂的查询语句，因为ClickHouse主要使用SQL语句进行控制，对于复杂查询，对开发人员的代码编写不太友好。DolphinDB内置的脚本语言对于复杂查询能更灵活的编写。
+
+在该场景下，在ClickHouse中我们选用了MergeTree这种强大的表引擎。
+
+### 分区方式对比
+
+分区的总原则是让数据管理更加高效，提高查询和计算的性能，达到低延时和高吞吐量。
+
+
+
+DolphinDB 支持多种分区方式，DolphinDB推荐的分区大小是控制在100MB到1GB之间，这里我们选用了基于股票时间的值分区和股票代码的范围分区的组合分区。
+
+本次性能对比是在固定节点数的情况下进行对比，但是对于需要增加新节点的情况，两款数据库对此支持程度不相同：
+
+DolphinDB支持`rebalance`，
+
+ClickHouse的分布式表的问题：必须要在所有节点上创建本地表（这里的例子是`MergeTree`）和分布式表（`Distrubuted`），否则向分布式表插入时会出错。ClickHouse的分布式表因此扩展性也比较差，除了要手动增加节点之外，由于可能会遗漏一些节点的表而出错，扩展时不适合做查询。此外，由于增加了新节点后，数据无法自动重平衡，只能调整新节点的分片权重来缓解该问题。
 
 ## 附录
 
@@ -235,7 +277,7 @@ done;
 - [ClicHouse数据转换脚本](script/clickhouse/csv_transfer.py)
 
 DolphinDB
-- [集群配置](docker/dolphindb/config)
+- [集群配置](docker/dolphindb/config/cluster.cfg)
 - [Dockerfile](docker/dolphindb/Dockerfile)
 - [docker-compose](docker/dolphindb/docker-compose.yml)
 - [测试脚本](script/dolphindb/taq2.txt)

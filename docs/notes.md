@@ -66,6 +66,11 @@ Date:           [111111122222223333123321111122222233321111111212222222311111222
 
 ClickHouse 不要求主键惟一。所以，你可以插入多条具有相同主键的行。
 
+
+## ClickHouse增加分片
+
+When you add a new shard, old data is not moved to it automatically. Recommended approach is indeed to "play with the weights" as you have put it, i.e. increase the weight of the new node until the volume of data is even. But if you want to rebalance the data immediately, you can use the ALTER TABLE RESHARD command. Read the docs carefully and keep in mind various limitations of this command, e.g. it is not atomic.
+
 ## 清理缓存
 
 清除页面缓存（PageCache）
