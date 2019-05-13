@@ -1,5 +1,31 @@
 # ClickHouse 速记
 
+ClickHouse 不支持事务，不支持update和delete
+
+## Clickhouse MergeTree
+
+MergeTree 类似 LSM-Tree, 但是没有内存表，不记录log
+直接按照主键排序分块写入磁盘
+异步merge，与写入不冲突，最大merge到月维度
+不支持删除和修改
+
+高性能读取：按照主键查询（最左原则），
+稀疏索引定位区间：不适合点对点查询，适合范围查询，有大量的IO
+稀疏索引可以节省大量索引空间，这个索引始终放在内存中。
+
+
+## ClickHouse 缺点
+
+可扩展性和可靠性差。
+
+默认情况下，INSERT 语句仅等待一个副本写入成功后返回。如果数据只成功写入一个副本后该副本所在的服务器不再存在，则存储的数据会丢失。要启用数据写入多个副本才确认返回，使用 insert_quorum 选项。
+
+## ClickHouse Distrubuted 引擎
+
+- 本身不存储数据
+- 写入数据时，做数据转发
+- 查询数据时，作为中间件，聚合数据
+
 ## ClickHouse Config
 
 ClickHouse有几核心的配置文件：

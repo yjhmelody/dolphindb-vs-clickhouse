@@ -215,6 +215,41 @@ where
 // 连续查询  44ms 44ms 46ms
 
 
+//select 500 most liquid stocks, get minute level returns, and calculate the pair wise correlation
+timer {
+	dateValue=2007.08.01
+	num=500
+	syms = (exec count(*) from taq 
+	where 
+		date = dateValue, 
+		time between 09:30:00 : 15:59:59, 
+		0<bid, bid<ofr, ofr<bid*1.2
+	group by symbol order by count desc).symbol[0:num]
+
+	priceMatrix = exec avg(bid + ofr)/2.0 as price from taq 
+	where 
+		date = dateValue, Symbol in syms, 
+		0<bid, bid<ofr, ofr<bid*1.2, 
+		time between 09:30:00 : 15:59:59 
+	pivot by time.minute() as minute, Symbol
+}
+
+// times: 4387ms 4264ms 3642ms
+// 连续查询  3518ms 3988ms 3649ms
+
+
+retMatrix = each(def(x):ratios(x)-1, priceMatrix)
+corrMatrix = cross(corr, retMatrix, retMatrix)
+
+//get 10 most correlated stocks for each stock
+mostCorrelated = select * from table(corrMatrix).rename!(`sym`corrSym`corr) 
+context by sym having rank(corr,false) between 1:10
+
+//get most correlated 10 stocks for selected stocks
+select * from mostCorrelated 
+where sym='LEH' order by corr desc
+
+
 
 
 // --------------------------------------------------------------------------------------------- //
@@ -229,7 +264,9 @@ where
 	ofr > bid
 group by symbol, minute(time) as minute
 // times: 
-// 连续查询 
+// 连续查询 // times: 321ms 364ms 229ms
+// 连续查询  44ms 44ms 46ms
+
 // 内存 
 
 
@@ -275,31 +312,3 @@ order by date desc, symbol
 // 内存 3,322.5  4,240.6
 
 
-
-//select 500 most liquid stocks, get minute level returns, and calculate the pair wise correlation
-dateValue=2007.08.01
-num=500
-syms = (exec count(*) from taq 
-where 
-	date = dateValue, 
-	time between 09:30:00 : 15:59:59, 
-	0<bid, bid<ofr, ofr<bid*1.2 
-group by Symbol order by count desc).Symbol[0:num]
-
-priceMatrix = exec avg(bid + ofr)/2.0 as price from taq 
-where 
-	date = dateValue, Symbol in syms, 
-	0<bid, bid<ofr, ofr<bid*1.2, 
-	time between 09:30:00 : 15:59:59 
-pivot by time.minute() as minute, Symbol
-
-retMatrix = each(def(x):ratios(x)-1, priceMatrix)
-corrMatrix = cross(corr, retMatrix, retMatrix)
-
-//get 10 most correlated stocks for each stock
-mostCorrelated = select * from table(corrMatrix).rename!(`sym`corrSym`corr) 
-context by sym having rank(corr,false) between 1:10
-
-//get most correlated 10 stocks for selected stocks
-select * from mostCorrelated 
-where sym='LEH' order by corr desc

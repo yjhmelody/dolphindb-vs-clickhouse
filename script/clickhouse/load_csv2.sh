@@ -23,3 +23,7 @@ load_csv2() {
 }
 
 load_csv2
+
+# clickhouse-client --port 19006 --query="INSERT INTO taq FORMAT CSV" < TAQ20070821.csv
+
+# clickhouse-client --port 19006 --query="INSERT INTO taq FORMAT CSV" < TAQ20070820.csv

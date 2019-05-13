@@ -341,11 +341,9 @@ SELECT max(ofr) - min(bid) AS gap FROM taq2 WHERE toDate(time) IN '2007-08-01' A
 SELECT max(ofr) - min(bid) AS gap FROM taq3 WHERE toDate(time) IN '2007-08-01' AND bid > 0 AND ofr > bid GROUP BY symbol, toStartOfMinute(time) AS minute
 -- 一次: 41.539s 37.914s 40.033s
 -- 连续 5.293s 5.205s 5.232s
-
 SELECT max(ofr) - min(bid) AS gap FROM taq4 WHERE toDate(time) IN '2007-08-01' AND bid > 0 AND ofr > bid GROUP BY symbol, toStartOfMinute(time) AS minute
--- 一次: 34.976s 33.037s 32.784s
+-- 一次: 34.976s 33.03s  32.784s
 -- 连续 4.910s 4.784s 4.669s
-
 SELECT max(ofr) - min(bid) AS gap FROM taq5 WHERE toDate(time) IN '2007-08-01' AND bid > 0 AND ofr > bid GROUP BY symbol, toStartOfMinute(time) AS minute
 -- 一次: 22.295s 22.966s 24.186s
 -- 连续 4.500s 4.472s 4.465s
@@ -359,6 +357,45 @@ SELECT median(ofr), median(bid) FROM taq4 WHERE date = '2007-08-10' AND symbol =
 SELECT median(ofr), median(bid) FROM taq5 WHERE date = '2007-08-10' AND symbol = 'IBM'
 -- 一次: 378ms 205ms 387ms
 -- 连续 45ms 43ms 43ms
+
+
+
+select count(*) from taq5
+where 
+toDate(time) = '2007-08-01'
+AND toYYYYMMDDhhmmss(time) % 1000000 BETWEEN 093000 AND 155959
+AND 0 < bid AND bid < ofr AND ofr < bid*1.2
+GROUP BY symbol
+ORDER BY count(*) DESC
+LIMIT 500 BY symbol
+
+
+
+-- 30000个数据
+-- priceMatrix 
+SELECT symbol, floor(toYYYYMMDDhhmmss(time) % 10000 / 100 ) AS minute, avg(bid + ofr)/2.0 AS price FROM taq5 
+WHERE 
+    toDate(time) = '2007-08-01'
+    -- AND symbol in syms
+    AND 0 < bid
+    AND bid < ofr
+    AND ofr < bid*1.2
+    AND toYYYYMMDDhhmmss(time) % 1000000 BETWEEN 93000 AND 155959
+group by (minute, symbol)
+    -- AND symbol in ('IBM')
+
+SELECT symbol, intDiv(toYYYYMMDDhhmmss(time) % 10000, 100) as minute, avg(bid + ofr)/2.0 AS price FROM taq5 
+WHERE 
+    toDate(time) = '2007-08-01'
+    -- AND symbol in syms
+    AND 0 < bid
+    AND bid < ofr
+    AND ofr < bid*1.2
+    AND symbol in ('OIH','AAPL','QQQQ','SPY','XLE','XLF','RIG','XOM','SDS','QID','TWM','GS','IWM','C','HAL','IWS','DO','GSF','GE','NBR','IVV','MSFT','DIA','BSC','AIG','INTC','PBR','JPM','BJS','CSCO','QCOM','CVX','VLO','SLB','MTG','RDN','BAC','BRCM','ABK','AMAT','EEM','SU','FCX','COP','IBM','ECA','IWO','POT','SNDK','LEH','AMGN','CMCSA','IWR','AMZN','DXD','RIO','BHI','MA','MRK','DELL','X','ESV','PFE','MER','T','IWB','HD','MRO','IWP','EOG','MDY','WFT','MZZ','NOV','OEF','WMT','XLV','IVW','BZH','SMH','APC','MS','ORCL','CMCSK','XLK','AA','TLT','TGT','ICE','IJH','QLD','JNJ','NE','VZ','PG','XLB','IWD','DIS','HPQ','SII','IWN','IWF','CAT','IJR','EBAY','DITC','TWX','CTX','ITU','GOOG','USB','MMM','NYX','PPH','KO','UTX','LOW','GRP','TXN','GM','UPS','RTH','YHOO','DVN','WFC','WMB','APA','MCD','LRCX','EXC','NTAP','XTO','BP','WB','BA','WFR','XLI','HES','BTU','HHH','CAM','XLP','AXP','COF','RKH','NUE','MXIM','CNQ','JNPR','UTH','CFC','NVDA','KLAC','CCJ','CHK','RIMM','OXY','VWO','HST','GILD','MET','RDC','XLNX','DD','IYE','MO','HON','SID','COH','XLU','ADBE','WM','BNI','MBI','XLY','EWZ','IR','NEM','MRVL','AMX','FE','FNM','IGE','RIOPR','PEG','CVS','ALTR','EFA','HIG','BIIB','S','AMD','AKAM','PDE','NSC','PX','MT','MU','STT','CNX','MLM','SBUX','ACXM','SSO','LM','WYE','BK','IYR','GGP','MOT','COST','KBH','NWSA','UNH','NOK','USO','BKHM','SYMC','EMC','ERIC','TLM','NSM','SUN','ATI','CAG','KSS','CME','NVLS','KFT','GG','FTO','XEL','BHP','RYL','PMI','KEY','WLP','PCAR','LLTC','BBT','BBY','FRE','DBC','TSO','CSE','SNY','IYY','TOL','EP','IAI','DOW','DHI','CELG','SWN','JCP','ACE','PEP','TOT','NCC','TLAB','ED','ACI','NXY','VTI','BGC','CI','ADSK','RAS','CSX','PGR','ATVI','GNW','CTSH','WY','ABT','AFL','RF','MUR','ALL','PNC','SPG','WFMI','PAYX','CY','SGP','IDU','AGE','NIHD','PLD','EMR','ICF','PHM','IYT','MON','AL','LEN','DE','AOC','EWJ','NKE','LTR','VNO','JWN','RTI','SPLS','IEZ','SRE','ABX','ASN','BIDU','SAP','EIX','LLY','BBH','CTXS','LYO','CBS','IVE','ANF','GGB','CCL','BEAS','SUNW','SOV','PTEN','BBBY','KMB','GLW','FITB','KR','ETFC','CMI','LFC','HOT','GT','FPL','STI','AEM','IGM','CHL','MI','AMP','CL','BAX','IYW','DVY','TDW','SCHW','HBC','INTU','PBRA','NMX','PFG','CMA','MCO','TXU','AEP','NWS','TEVA','ASML','D','ERTS','WMI','CB','GENZ','BMY','UNP','IP','CHRW','F','VUG','NVT','LNC','AUY','WAG','GRMN','AZ','ONNN','GSK','DUK','SWY','MOS','BAM','COMS','VMC','IGW','DCX','ETR','VCLK','CBG','UBS','VTV','STLD','RSH','AMTD','FXI','DTV','BPO','NT','IWV','BEN','XHB','AET','APOL','PRU','RTN','UBB','CIEN','DDM','LBTYA','ACAS','ADM','VV','IJJ','AMT','TRV','TS','LMT','FTI','OLN','MDT','GPS','HC','TEX','KIM','GCI','FLR','VIP','AGU','BDX','CBH','NVS','MMC','VRTX','CX','BYD','SNE','NRG','FDX','AVP','TIE','HOG','BBD','PWR','MAR','GIS','BUD','AMR','PPG','EQR','LTD','MCHP','ADI','APD','FSLR','FRX','CIT','HLX','ITW','OCR','ASD','FIS','ISIL','PCU','Q','VDE','BXP','EWT','NFX','RRC','DHR','M','UNG','VOD','SNV','TIF','GD','TRA','SO','VO','BSX','MHS','VRSN','HUM','ETN','DGX','ATML','DISCA','CROX','DNA','IYG','ACN','FLEX','JNS','FISV','TE','SFI','ROH','IYF','KWK') 
+    AND toYYYYMMDDhhmmss(time) % 1000000 BETWEEN 93000 AND 155959
+group by (minute, symbol)
+
+
 
 
 --------------------------------------- 下面逻辑需要改写 -----------------------------------------
@@ -415,3 +452,24 @@ group by toDate(time), symbol
 order by toDate(time) desc, symbol
 -- 一次:
 -- 连续查询
+
+
+
+-- select 500 most liquid stocks, get minute level returns, and calculate the pair wise correlation
+
+-- syms
+SELECT symbol, count(*) FROM taq5
+WHERE 
+    toDate(time) = '2007-08-01'
+    AND toYYYYMMDDhhmmss(time) % 1000000 BETWEEN 093000 AND 155959
+    AND 0 < bid 
+    AND bid < ofr 
+    AND ofr < bid*1.2
+GROUP BY symbol
+ORDER BY count(*) DESC
+LIMIT 500
+
+
+
+
+

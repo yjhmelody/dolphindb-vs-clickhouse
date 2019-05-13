@@ -47,22 +47,6 @@
         </cluster_7shard_1replicas>
     </clickhouse_remote_servers>
 
-    <!-- ZK  -->
-    <zookeeper>
-        <node index="1">
-            <host>zoo1</host>
-            <port>2181</port>
-        </node>
-        <node index="2">
-            <host>zoo2</host>
-            <port>2181</port>
-        </node>
-        <node index="3">
-            <host>zoo3</host>
-            <port>2181</port>
-        </node>
-    </zookeeper>
-    
     <networks>
         <ip>::/0</ip>
     </networks>
