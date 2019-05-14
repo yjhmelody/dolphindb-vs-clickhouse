@@ -223,13 +223,13 @@ DolphinDB 和 ClickHouse 两款数据库对表的读操作都是自动并行的�
 
 所有查询分为2种：
 
-- 一次查询的性能，排除缓存影响
+- 首次查询的性能，排除缓存影响
 
 - 连续查询，即缓存以后继续查询，对比缓存带来的性能影响
 
 每个查询用例测试3次。
 
-##### 一次查询性能对比
+##### 首次查询性能对比
 
 |    样例     | DolphinDB | DolphinDB | DolphinDB | ClickHouse | ClickHouse | ClickHouse |
 | :---------: | :-------: | :-------: | --------- | --------- | --------- | --------- |
@@ -287,6 +287,39 @@ DolphinDB 和 ClickHouse 两款数据库对表的读操作都是自动并行的�
 | 9. 经典查询 |  2901ms   | 4479ms     |
 | 10.统计查询 |   45ms    | 44ms       |
 
+#### 一个复杂查询对比
+
+由于 DolphinDB 内置了脚本语言，对于复杂查询依然能够方便的编写，内置的数据类型可以用在SQL语句中作为参数，非常灵活。下面一个复合查询可以如此拆开来进行，而不会失去性能。
+
+```txt
+	dateValue=2007.08.01
+	num=500
+	syms = (exec count(*) from taq 
+	where 
+		date = dateValue, 
+		time between 09:30:00 : 15:59:59, 
+		0 < bid, bid < ofr, ofr < bid*1.2
+	group by symbol order by count desc).symbol[0:num]
+
+	priceMatrix = exec avg(bid + ofr)/2.0 as price from taq 
+	where 
+		date = dateValue, Symbol in syms, 
+		0<bid, bid<ofr, ofr<bid*1.2, 
+		time between 09:30:00 : 15:59:59 
+	pivot by time.minute() as minute, Symbol
+```
+
+pivot by是DolphinDB的独有功能，是对标准SQL的拓展。它按照两个维度将表中某列的内容重新整理（可以使用数据转换函数），和select子句在一起使用时返回一个表，而和exec语句一起使用时将转换成一个矩阵。
+
+对于ClickHouse，无法很好地实现这种pivot查询。于是我们使用第三方API来查询两次数据后，然后使用pandas进行pivot。本次对比也是在本地上查询
+
+
+
+|   样例   | DolphinDB | ClickHouse |
+| :------: | :-------: | ---------- |
+| 首次查询 |  4098ms   | 27636ms    |
+| 连续查询 |  3718ms   | 12728ms    |
+
 ### 性能对比分析
 
 可以看到对于窗口函数，DolphinDB的速度比ClickHouse要快很多。实际上ClickHouse对窗口函数的支持很有限。ClickHouse不支持多级表连接，而且行为跟常规SQL语句差别很大。ClickHouse没有专门的时分秒数据类型，默认的配置也是按月进行分区，场景定位可能更倾向于较粗时间粒度的时间序列分析。
@@ -301,7 +334,48 @@ DolphinDB 和 ClickHouse 两款数据库对表的读操作都是自动并行的�
 
 DolphinDB 支持多种分区方式，DolphinDB推荐的分区大小是控制在100MB到1GB之间，这里我们选用了基于股票时间的值分区和股票代码的范围分区的组合分区。
 
-本次性能对比是在固定节点数的情况下进行对比，但是对于需要增加新节点的情况，两款数据库对此支持程度不相同。
+本次性能对比是在固定节点数的情况下进行对比，但是对于需要<yandex>
+
+    <clickhouse_remote_servers>
+        <!-- 2分片无复制 -->
+        <cluster_2shard_1replicas>
+            <!-- 数据分片1 -->
+            <shard>
+                <replica>
+                    <host>192.168.1.119</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+    
+            <!-- 数据分片2 -->
+            <shard>
+                <replica>
+                    <host>192.168.1.201</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+    
+        </cluster_2shard_1replicas>
+    </clickhouse_remote_servers>
+    
+    <!-- ZK  -->
+    <zookeeper-servers>
+        <node index="1">
+          <host>192.168.1.109</host>
+          <port>2181</port>
+        </node>
+    </zookeeper-servers>
+    
+    <!-- 数据压缩算法  -->
+    <clickhouse_compression>
+        <case>
+          <min_part_size>10000000000</min_part_size>
+          <min_part_size_ratio>0.01</min_part_size_ratio>
+          <method>lz4</method>
+        </case>
+    </clickhouse_compression>
+
+</yandex>增加新节点的情况，两款数据库对此支持程度不相同。
 
 ClickHouse的分布式表的问题：必须要在所有节点上创建本地表（这里的例子是`MergeTree`）和分布式表（`Distrubuted`），否则向分布式表插入时会出错。ClickHouse的分布式表因此扩展性也比较差，除了要手动增加节点之外，由于可能会遗漏一些节点的表而出错，扩展时不适合做查询。此外，由于增加了新节点后，数据无法自动重平衡，只能调整新节点的分片权重来缓解该问题。总的来说，ClickHouse的分区可扩展性和可靠性较差，不支持更精细的分区。
 

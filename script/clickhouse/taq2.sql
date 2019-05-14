@@ -124,6 +124,35 @@ SETTINGS index_granularity=8192;
 CREATE TABLE IF NOT EXISTS taq5 AS taq_local5
 ENGINE = Distributed(cluster_7shard_1replicas, default, taq_local5, toYYYYMMDD(time));
 
+
+
+------------------------------ 带复制 ------------------------------------
+DROP TABLE IF EXISTS taq_local6;
+DROP TABLE IF EXISTS taq6;
+
+CREATE TABLE IF NOT EXISTS taq_local6 (
+    symbol String,
+    date Date,
+    time DateTime,
+    bid Float64,
+    ofr Float64,
+    bidSiz Int32,
+    ofrsiz Int32,
+    mode Int32,
+    ex FixedString(1),
+    mmid Nullable(String)
+) ENGINE = ReplicatedMergeTree('/clickhouse/tables/node1/hits', 'node1')
+PARTITION BY toYYYYMMDD(time)
+ORDER BY symbol
+SETTINGS index_granularity=8192;
+
+CREATE TABLE IF NOT EXISTS taq6 AS taq_local6
+ENGINE = Distributed(cluster_3shard_2replicas, default, taq_local6, toYYYYMMDD(time));
+
+
+
+
+
 ------------------------------------------------------------------------
 
 INSERT INTO taq_local VALUES ('A', '2007-08-01', '2007-08-01 06:24:34', 1, 0, 1, 0, 12,'P', NULL);

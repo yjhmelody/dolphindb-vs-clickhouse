@@ -5,7 +5,7 @@ networks:
     driver: bridge
     ipam:
       config:
-       - subnet: 10.5.0.0/16
+       - subnet: 10.6.0.0/16
        
 services:  
     zoo1:
@@ -20,7 +20,7 @@ services:
             ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
         networks: 
             dbnet:
-                ipv4_address: 10.5.0.21
+                ipv4_address: 10.6.0.21
 
     zoo2:
         image: zookeeper:3.4.14
@@ -34,7 +34,7 @@ services:
             ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
         networks: 
             dbnet:
-                ipv4_address: 10.5.0.22
+                ipv4_address: 10.6.0.22
 
     zoo3:
         image: zookeeper:3.4.14
@@ -48,4 +48,4 @@ services:
             ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
         networks: 
             dbnet:
-                ipv4_address: 10.5.0.23
+                ipv4_address: 10.6.0.23

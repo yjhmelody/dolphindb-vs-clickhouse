@@ -6,7 +6,7 @@
             <!-- 数据分片1 -->
             <shard>
                 <replica>
-                    <host>192.168.1.119</host>
+                    <host>192.168.1.144</host>
                     <port>9000</port>
                 </replica>
             </shard>

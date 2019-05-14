@@ -1,0 +1,202 @@
+version: "3.7"
+
+networks:
+  dbnet:
+    driver: bridge
+    ipam:
+      config:
+       - subnet: 10.5.0.0/16
+
+services: 
+    node1:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node1
+        hostname: node1
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml            
+            - /hdd/hdd1/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd1/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd1/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports: 
+            - "19001:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.2
+
+    node2:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node2
+        hostname: node2
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd2/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd2/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd2/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "19002:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.3
+    node3:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node3
+        hostname: node3
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd3/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd3/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd3/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "19003:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.4
+
+    node4:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node4
+        hostname: node4
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd4/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd4/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd4/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "19004:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.5
+    node5:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node5
+        hostname: node5
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd5/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd5/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd5/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "19005:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.6
+    node6:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node6
+        hostname: node6
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd6/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd6/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd6/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "19006:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.7
+        
+    node7:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node7
+        hostname: node7
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            - /hdd/hdd7/clickhouse:/var/lib/clickhouse
+            - /hdd/hdd7/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd7/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "19007:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.8
+  
+    zoo1:
+        image: zookeeper:3.4.14
+        restart: always
+        hostname: zoo1
+        container_name: zoo1
+        ports:
+            - 2181:2181
+        environment:
+            ZOO_MY_ID: 1
+            ZOO_SERVERS: server.1=0.0.0.0:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.21
+
+    zoo2:
+        image: zookeeper:3.4.14
+        restart: always
+        hostname: zoo2
+        container_name: zoo2
+        ports:
+            - 2182:2181
+        environment:
+            ZOO_MY_ID: 2
+            ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zoo3:2888:3888
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.22
+
+    zoo3:
+        image: zookeeper:3.4.14
+        restart: always
+        hostname: zoo3
+        container_name: zoo3
+        ports:
+            - 2183:2181
+        environment:
+            ZOO_MY_ID: 3
+            ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=0.0.0.0:2888:3888
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.23

@@ -5,8 +5,8 @@ from typing import *
 
 import time
 
-# 13344ms 13286ms 13157ms 
-# 13480ms 13682ms 
+# 27734ms 26411ms 28763ms
+# 12716ms 12580ms 12888ms
 if __name__ == '__main__':
     client = Client(host='115.239.209.224', port=19001)
     start = time.time()
@@ -57,7 +57,6 @@ if __name__ == '__main__':
         'minute': minute,
         'price': price
     })
-
-    print(df.pivot(index='minute', columns='symbol', values='price'))
     end = time.time()
+    print(df.pivot(index='minute', columns='symbol', values='price'))
     print(end - start)
