@@ -13,3 +13,5 @@ dolphindb.lic
 domain
 *.obj
 .workspace
+temp
+*.2

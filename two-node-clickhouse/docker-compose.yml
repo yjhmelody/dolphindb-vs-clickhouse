@@ -1,0 +1,53 @@
+version: "3.7"
+
+networks:
+  dbnet:
+    driver: bridge
+    ipam:
+      config:
+       - subnet: 10.5.0.0/16
+
+services: 
+    node1:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node1
+        hostname: node1
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml            
+            - /mnt/data/hdd/hdd1/clickhouse:/var/lib/clickhouse
+            - /mnt/data/hdd/hdd1/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd1/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports: 
+            - "19001:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.2
+
+    node2:
+        image: yandex/clickhouse-server:19.4.4.33
+        container_name: node2
+        hostname: node2
+        volumes: 
+            - /hdd/etc/metrika.xml:/etc/metrika.xml
+            - /mnt/data/hdd/hdd2/clickhouse:/var/lib/clickhouse
+            - /mnt/data/hdd/hdd2/clickhouse/log:/var/log/clickhouse-server
+            - /hdd/hdd2/data:/data
+        ulimits: 
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536
+                hard: 65536
+        ports:
+            - "19002:9000"
+        networks: 
+            dbnet:
+                ipv4_address: 10.5.0.3

@@ -21,12 +21,12 @@ ENGINE = Distributed(cluster_7shard_1replicas, default,
 
 def rand_csv_data(col_num, row_num):
     date = '2019-01-01'
-    id = random.randint(0, 30)
     col_names = ['date', 'id']
     for i in range(col_num):
         col_names.append('p' + str(i))
     rows = []
     for i in range(row_num):
+        id = random.randint(0, 30)
         rows.append([date, id])
         for j in range(col_num):
             rows[i].append(random.randint(0, 2 ** 20))
@@ -54,9 +54,9 @@ def create_sql(path: str, col_names: List, col_types: List):
 
 
 if __name__ == '__main__':
-    (col_names, rows) = rand_csv_data(col_num, 3)
-    write_csv('./rand.csv', col_names, rows)
+    (col_names, rows) = rand_csv_data(col_num, 1000)
+    write_csv('./temp/rand.csv', col_names, rows)
     col_types = ['Date', 'FixedString(2)']
     for i in range(len(col_names) - 2):
         col_types.append('Int64')
-    create_sql('./autogen.sql', col_names, col_types)
+    create_sql('./temp/autogen.sql', col_names, col_types)
