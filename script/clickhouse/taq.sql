@@ -2,8 +2,6 @@ SELECT * FROM system.clusters;
 SELECT * FROM system.zookeeper WHERE path = '/clickhouse';
 SELECT memory_usage, query, peak_memory_usage FROM system.processes;
 
-DROP TABLE IF EXISTS taq_local;
-DROP TABLE IF EXISTS taq;
 
 -- 对于 CREATE， DROP， ALTER，以及RENAME查询，系统支持其运行在整个集群上
 -- MergeTree() 参数
@@ -13,6 +11,11 @@ DROP TABLE IF EXISTS taq;
 --     index_granularity — 索引粒度。即索引中相邻『标记』间的数据行数。设为 8192 可以适用大部分场景。
 
 -- 默认情况下主键跟排序键（由ORDER BY子句指定）相同。因此，大部分情况下不需要再专⻔指定一个PRIMARY KEY子句。
+
+
+
+DROP TABLE IF EXISTS taq_local;
+DROP TABLE IF EXISTS taq;
 
 CREATE TABLE IF NOT EXISTS taq_local (
     symbol String,
