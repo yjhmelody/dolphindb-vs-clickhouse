@@ -148,7 +148,7 @@ SELECT DISTINCT
     int17,
     int18,
     int19,
-    int20
+    int20,
     int21,
     int22,
     int23,
