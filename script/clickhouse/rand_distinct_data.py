@@ -1,12 +1,10 @@
-import os
+import sys
 import csv
 import random
-from typing import *
 import io
 
 
 def rand_csv_data(row_num: int, int_col_num: int):
-    date = '2019-01-01'
     rand_string = ["A", "BB", "CCC", "DDDD", "EEEEE", "FFFFFF", "GGGGGGG"]
     rows = []
     for i in range(row_num):
@@ -25,12 +23,12 @@ def rand_csv_data(row_num: int, int_col_num: int):
 
         rows.append([char_, short_, int_, long_, float_, double_, string_, null_int_])
 
-        for j in range(int_col_num):
+        for _ in range(int_col_num):
             rows[i].append(random.randint(0, min([2 ** 63 - 1, row_num])))
     return rows
 
 
-def write_csv(path: str, rows: List):
+def write_csv(path: str, rows: list):
     with open(path, 'w') as file:
         writer = csv.writer(file)
         writer.writerows(rows)
@@ -38,8 +36,14 @@ def write_csv(path: str, rows: List):
 
 
 if __name__ == '__main__':
-    col_num = 1000000
     int_num = 50
+    if len(sys.argv) < 3:
+        print('''
+        python rand_distinct_data.py [path] [row_num]
+        ''')
 
-    rows = rand_csv_data(col_num, int_num)
-    write_csv('../temp/rand.csv', rows)
+    path = sys.argv[1]
+    row_num = int(sys.argv[2])
+
+    rows = rand_csv_data(row_num, int_num)
+    write_csv(path, rows)
