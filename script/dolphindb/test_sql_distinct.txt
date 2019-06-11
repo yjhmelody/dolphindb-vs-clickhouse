@@ -1,0 +1,98 @@
+login(`admin,`123456)
+
+dbName = "/home/chao/yjh/gitlab/temp/gen/rand"
+tablePath = "/home/chao/yjh/gitlab/temp/gen/rand.csv"
+
+colNames = ["char", "short", "int", "long", "float", "double", "string", "nullInt"]
+colTypes = [`CHAR, `SHORT, `INT, `LONG, `FLOAT, `DOUBLE, `STRING, `INT]
+
+intNum = 50
+for(i in 1..intNum) {
+	colNames.append!("int" + string(i))
+	colTypes.append!(`INT)
+}
+
+schema = table(colNames, colTypes)
+
+tbl = ploadText(tablePath, ',', schema)
+
+db = database(dbName, SEQ, 4)
+loadTextEx(db, `tb, , tablePath, ',', schema)
+
+tb = db.loadTable(`tb)
+
+timer tmp = select char from tb
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select short from tb
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select int from tb
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select long from tb 
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select float from tb 
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select double from tb
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select string from tb
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select nullInt from tb
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select char, short, int from tb
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select int, long, double from tb 
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
+
+
+timer tmp = select short, int, long, float, double, nullInt from tb 
+timer res = distinctImpl(tmp)
+print(tmp.size())
+print(res.size())
+clearAllCache()
