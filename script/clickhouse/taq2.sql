@@ -387,6 +387,7 @@ SELECT median(ofr), median(bid) FROM taq5 WHERE date = '2007-08-10' AND symbol =
 -- 一次: 378ms 205ms 387ms
 -- 连续 45ms 43ms 43ms
 
+SELECT median(ofr), median(bid) from taq5 where date = '2007-08-10' AND symbol = 'IBM' AND bid > 113.2
 
 
 select count(*) from taq5

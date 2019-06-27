@@ -11,7 +11,6 @@ tb_schema = extractTextSchema(sample_taq_path)
 schema = table(lower(tb_schema.name) as name, tb_schema.type)
 print(schema)
 
-
 // ----------------- 创建 schema
 // 将列名调整为小写避免与 DolphinDB 内置的 SYMBOL, DATE, TIME 等保留关键字产生冲突
 tb_schema = extractTextSchema(sample_taq_path)
@@ -213,6 +212,8 @@ where
 	symbol = 'IBM'
 // times: 321ms 364ms 229ms
 // 连续查询  44ms 44ms 46ms
+
+SELECT median(ofr), median(bid) from taq5 where date = '2007-08-10' AND symbol = 'IBM' AND bid > 113.2
 
 
 //select 500 most liquid stocks, get minute level returns, and calculate the pair wise correlation
